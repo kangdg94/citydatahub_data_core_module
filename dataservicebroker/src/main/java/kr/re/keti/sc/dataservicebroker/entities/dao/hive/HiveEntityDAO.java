@@ -1312,8 +1312,11 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
                                 targetColumnList.add( 
                                 "concat_ws(',', ".concat(columnName.concat(") AS ").concat(columnName) )); 
                             }
+                            else{
+                                targetColumnList.add(columnName);        
+                            }
                     }
-                        targetColumnList.add(columnName);
+                        //targetColumnList.add(columnName);
                 }
             }
         if (isTemproal) {
