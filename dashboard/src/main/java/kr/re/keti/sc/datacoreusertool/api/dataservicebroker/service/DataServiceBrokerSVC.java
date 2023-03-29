@@ -640,19 +640,19 @@ public class DataServiceBrokerSVC {
 					
 					if(responseEntity != null && !ValidateUtil.isEmptyData(responseEntity.getBody())) {
 						try {
-							String createdAt = null;
+							String modifiedAt = null;
 							for(CommonEntityVO commonEntityVO : responseEntity.getBody().getCommonEntityVOs()) {								
-								if(createdAt == null) {
-									createdAt = commonEntityVO.getCreatedAt();
+								if(modifiedAt == null) {
+									modifiedAt = commonEntityVO.getModifiedAt();
 								} else {
-									if(createdAt.compareTo(commonEntityVO.getCreatedAt()) > 0) {
-										createdAt = commonEntityVO.getCreatedAt();
+									if(modifiedAt.compareTo(commonEntityVO.getModifiedAt()) > 0) {
+										modifiedAt = commonEntityVO.getModifiedAt();
 									}
 								}
 							}
 							
-							if(createdAt != null) {
-								date = DateUtil.strToDate(createdAt);
+							if(modifiedAt != null) {
+								date = DateUtil.strToDate(modifiedAt);
 							}
 						} catch (ParseException e) {
 							log.warn("Fail to get the last modifiedAt.", e);
@@ -666,8 +666,8 @@ public class DataServiceBrokerSVC {
 					if(responseEntity != null && !ValidateUtil.isEmptyData(responseEntity.getBody())) {
 						try {
 							CommonEntityVO commonEntityVO = responseEntity.getBody();
-							String createdAt = commonEntityVO.getCreatedAt().toString();
-							date = DateUtil.strToDate(createdAt);
+							String modifiedAt = commonEntityVO.getModifiedAt().toString();
+							date = DateUtil.strToDate(modifiedAt);
 						} catch (ParseException e) {
 							log.warn("Fail to get the last modifiedAt.", e);
 						}

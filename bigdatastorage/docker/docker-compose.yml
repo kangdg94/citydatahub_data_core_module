@@ -14,13 +14,8 @@ services:
       NEW_DB_USER: hive
       NEW_DB_PASSWORD: hive123!
       NEW_DB_DATABASE: hive
-    # volumes:
-    #   - data-volume:/var/lib/postgresql/data
     ports:
       - 54321:5432
-    # networks:
-    #   - alex-local-bridge
-    #   - local-overlay
 
   hadoop:
     container_name: hadoop
@@ -34,7 +29,6 @@ services:
       HADOOP_CONF_DIR: "/conf/hadoop"
     volumes:
       - ./conf:/conf
-    # command: ln -srf /conf/hadoop/* /usr/local/hadoop/etc/hadoop/ && /usr/sbin/init
 
   thrift:
     container_name: thrift

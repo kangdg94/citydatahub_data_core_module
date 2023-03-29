@@ -29,9 +29,6 @@ ENV HADOOP_OPT "-Djava.library.path=$HADOOP_PREFIX/lib/native"
 
 ENV PATH $HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
 
-# RUN chown -R root:root /usr/local/hadoop-$HADOOP_VER
-# RUN chmod -R 744 /usr/local/hadoop-$HADOOP_VER
-
 ENV JAVA_HOME /usr/lib/jvm/jre-1.8.0-openjdk
 ENV HDFS_NAMENODE_USER root
 ENV HDFS_DATANODE_USER root
@@ -44,22 +41,17 @@ ENV HADOOP_OPTS "-Djava.library.path=$HADOOP_HOME/lib"
 RUN ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
 RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 RUN chmod 644 /root/.ssh/authorized_keys
+RUN yum -y install dos2unix
 
 WORKDIR /
 ADD supervisord.conf supervisord.conf
 
 ADD start-hadoop.sh start-hadoop.sh
 RUN chmod a+x start-hadoop.sh 
-# RUN yum -y install python-pip
-# RUN yum -y install python-setuptools
-# RUN pip install supervisor
-# RUN easy_install supervisor
-# Run the commands below after opening terminal
 
 RUN ssh-keygen -q -t rsa -N '' -f /etc/ssh/ssh_host_rsa_key
 RUN ssh-keygen -q -t dsa -N '' -f /etc/ssh/ssh_host_ecdsa_key
 RUN ssh-keygen -q -t ed25519 -N '' -f /etc/ssh/ssh_host_ed25519_key
-# RUN /usr/sbin/sshd
+RUN dos2unix start-hadoop.sh
 
-# /usr/local/hadoop/sbin/start-all.sh
 ENTRYPOINT ["supervisord", "-c", "/supervisord.conf"]
