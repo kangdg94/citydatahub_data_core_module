@@ -49,6 +49,7 @@ public class EntityConfiguration {
 
 	@Bean
 	@Qualifier("hbaseDynamicEntitySVC")
+	@ConditionalOnProperty(value="datasource.hive.use.yn", havingValue = "Y", matchIfMissing = false)
 	protected HbaseEntitySVC hbaseDynamicEntitySVC() {
 		HbaseEntitySVC hbaseEntitySVC = new HbaseEntitySVC();
 		hbaseEntitySVC.setEntityDAOInterface(hiveEntityDAO());
