@@ -8,7 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode;
+import kr.re.keti.sc.dataservicebroker.datamodel.DataModelManager;
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -74,6 +78,8 @@ public class NotificationProcessor implements IBulkProcessor<NotificationProcess
 
 	@Autowired
 	private KafkaProducerManager kafkaProducerManager;
+	@Autowired
+	private DataModelManager dataModelManager;
 	
 	@Value("${kafka.notification.topic:NOTIFICATION_REQUEST}")
 	private String notificationTopic;
@@ -149,7 +155,7 @@ public class NotificationProcessor implements IBulkProcessor<NotificationProcess
 			// 1. change event 기반 Notification인 경우
 			if(!notificationProcessVO.isTimeIntervalEvent()) {
 				// 1-1. watchAttributes 체크
-				if(!checkWatchAttributes(subscriptionBaseDaoVO.getWatchedAttributes(), notificationProcessVO.getRequestEntityFullVO())) {
+				if(!checkWatchAttributes(notificationProcessVO, subscriptionBaseDaoVO)) {
 					return;
 				}
 
@@ -203,20 +209,45 @@ public class NotificationProcessor implements IBulkProcessor<NotificationProcess
 
 	/**
 	 * chagne event 대상 attribute와 watchAttribute 일치 여부 체크
-	 * @param watchedAttributes watchAttribute 목록
-	 * @param requestFullVO chagne event 정보
+	 * @param notificationProcessVO
+	 * @param subscriptionBaseDaoVO
 	 * @return
 	 */
-	private boolean checkWatchAttributes(List<String> watchedAttributes, CommonEntityFullVO requestFullVO) {
-		if(watchedAttributes != null) {
-			for(String watchAttribute : watchedAttributes) {
-				if(requestFullVO.get(watchAttribute) != null) {
+	private boolean checkWatchAttributes(NotificationProcessVO notificationProcessVO, SubscriptionBaseDaoVO subscriptionBaseDaoVO) {
+		if(subscriptionBaseDaoVO.getWatchedAttributes() != null) {
+
+			// request entity expandTerm
+			List<String> entityAttributeFullUris = extractRequestEntityAttributeFullUris(notificationProcessVO);
+
+			// watchAttribute expandTerm
+			List<String> watchAttributeFullUris = dataModelManager.convertAttrNameToFullUri(
+					subscriptionBaseDaoVO.getContext(),
+					subscriptionBaseDaoVO.getWatchedAttributes()
+			);
+
+			// check full uri
+			for(String watchAttributeFullUri : watchAttributeFullUris) {
+				if(entityAttributeFullUris.contains(watchAttributeFullUri)) {
 					return true;
 				}
 			}
 			return false;
 		}
 		return true;
+	}
+
+	private List<String> extractRequestEntityAttributeFullUris(NotificationProcessVO notificationProcessVO) {
+
+		List<String> entityModelContext = dataModelManager.getDataModelVOCacheByContext(
+				null,
+				notificationProcessVO.getEntityTypeUri()
+		).getDataModelVO().getContext();
+
+		List<String> entityAttributes = notificationProcessVO.getRequestEntityFullVO().keySet().stream()
+				.filter(key -> DataServiceBrokerCode.DefaultAttributeKey.parseType(key) == null)
+				.collect(Collectors.toList());
+
+		return dataModelManager.convertAttrNameToFullUri(entityModelContext, entityAttributes);
 	}
 
 	/**

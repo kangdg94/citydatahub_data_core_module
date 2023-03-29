@@ -1,5 +1,6 @@
 package kr.re.keti.sc.dataservicebroker.entities.controller.http;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,6 +54,8 @@ public class TemporalEntityController {
     private String securityAclUseYn;
     @Value("${entity.retrieve.primary.accept:application/json}")
     private String primaryAccept;
+    @Value("${entity.default.context-uri}")
+    private String defaultContextUri;
 
     /**
      * 이력 데이터 건수 조회
@@ -79,7 +82,7 @@ public class TemporalEntityController {
         }
 
         List<String> links = HttpHeadersUtil.extractLinkUris(link);
-        queryVO.setLinks(links);
+        queryVO.setLinks(getLinkOrDefault(links));
 
         // 2. 리소스 조회
         Integer totalCount = entityRetrieveSVC.getTemporalEntityCount(queryVO, request.getQueryString(), link);
@@ -124,7 +127,7 @@ public class TemporalEntityController {
         }
 
         List<String> links = HttpHeadersUtil.extractLinkUris(link);
-        queryVO.setLinks(links);
+        queryVO.setLinks(getLinkOrDefault(links));
 
         accept = HttpHeadersUtil.getPrimaryAccept(accept);
 
@@ -136,7 +139,7 @@ public class TemporalEntityController {
             log.info("response body : " + objectMapper.writeValueAsString(resultList));
         }
 
-        HttpHeadersUtil.addContextLinkHeader(response, accept, queryVO.getContext());
+        HttpHeadersUtil.addContextLinkHeader(response, accept, getLinkHeaderByAccept(accept, links));
         response.getWriter().print(objectMapper.writeValueAsString(resultList));
 
     }
@@ -171,7 +174,7 @@ public class TemporalEntityController {
         }
 
         List<String> links = HttpHeadersUtil.extractLinkUris(link);
-        queryVO.setLinks(links);
+        queryVO.setLinks(getLinkOrDefault(links));
 
         accept = HttpHeadersUtil.getPrimaryAccept(accept);
 
@@ -183,7 +186,7 @@ public class TemporalEntityController {
             log.info("response body : " + objectMapper.writeValueAsString(resultList));
         }
 
-        HttpHeadersUtil.addContextLinkHeader(response, accept, queryVO.getContext());
+        HttpHeadersUtil.addContextLinkHeader(response, accept, getLinkHeaderByAccept(accept, links));
         response.getWriter().print(objectMapper.writeValueAsString(resultList));
 
     }
@@ -212,7 +215,7 @@ public class TemporalEntityController {
         }
 
         List<String> links = HttpHeadersUtil.extractLinkUris(link);
-        queryVO.setLinks(links);
+        queryVO.setLinks(getLinkOrDefault(links));
 
         // 2. 조회할 storageType 설정
         BigDataStorageType dataStorageType = BigDataStorageType.parseType(queryVO.getDataStorageType());
@@ -368,6 +371,25 @@ public class TemporalEntityController {
         }
 
         return requestAccept;
+    }
+
+    private List<String> getLinkHeaderByAccept(String accept, List<String> link) {
+
+        if (Constants.APPLICATION_LD_JSON_VALUE.equals(accept)) {
+            return null;
+        }
+
+        if (!ValidateUtil.isEmptyData(link)) {
+            return link;
+        }
+        return Collections.singletonList(defaultContextUri);
+    }
+
+    private List<String> getLinkOrDefault(List<String> link) {
+        if (!ValidateUtil.isEmptyData(link)) {
+            return link;
+        }
+        return Collections.singletonList(defaultContextUri);
     }
 
 }

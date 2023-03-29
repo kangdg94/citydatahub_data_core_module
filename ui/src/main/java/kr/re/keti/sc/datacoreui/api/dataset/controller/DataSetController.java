@@ -58,7 +58,7 @@ public class DataSetController {
 		}
 		
 		// 2. Create Data Set
-		ResponseEntity<T> reslt = dataSetSVC.createDataSet(dataSet);
+		ResponseEntity<T> reslt = dataSetSVC.createDataSet(dataSet, request);
 		
 		return reslt;
 	}
@@ -83,7 +83,7 @@ public class DataSetController {
 		}
 		
 		// 2. Update Data Set
-		ResponseEntity<T> reslt = dataSetSVC.updateDataSet(id, dataSet);
+		ResponseEntity<T> reslt = dataSetSVC.updateDataSet(id, dataSet, request);
 		
 		return reslt;
 	}

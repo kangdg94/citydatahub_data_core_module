@@ -27,4 +27,12 @@
         from ${tableName}
         where ID = #{id}
     </select>
+
+    <delete id="deleteEntity">
+        delete 
+        from ${tableName}
+        where dataset_id = #{datasetId}
+            and modified_at is not null 
+            and modified_at &lt; #{lifeCycleDate}
+    </delete>
 </mapper>

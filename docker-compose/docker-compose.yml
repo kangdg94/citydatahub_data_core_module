@@ -8,6 +8,7 @@ services:
     ports:
       - 2181:2181
     environment:
+      TZ: Asia/Seoul
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
@@ -22,6 +23,7 @@ services:
       - 9092:9092
       # - 9101:9101
     environment:
+      TZ: Asia/Seoul
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -44,6 +46,7 @@ services:
     ports:
       - 18082:8082
     environment:
+      TZ: Asia/Seoul
       KAFKA_REST_HOST_NAME: rest-proxy
       KAFKA_REST_BOOTSTRAP_SERVERS: broker:29092
       KAFKA_REST_LISTENERS: http://0.0.0.0:8082
@@ -58,6 +61,7 @@ services:
     volumes:
       - ./plugins.erl:/etc/rabbitmq/enabled_plugins
     environment:
+      TZ: Asia/Seoul
       RABBITMQ_ERLANG_COOKIE: RabbitMQ-My-Cookies
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
@@ -77,6 +81,7 @@ services:
       - ../ui/datacoreui_init_data.sql:/docker-entrypoint-initdb.d/5_datacore-ui-dml.sql
       - ../dashboard/init.sql:/docker-entrypoint-initdb.d/6_datacore-dashboard-ddl.sql
     environment:
+      TZ: Asia/Seoul
       POSTGRES_PASS: postgres
       POSTGRES_USER: postgres
       POSTGRES_DBNAME: smart_city
@@ -92,12 +97,13 @@ services:
     volumes:
       - ./logs/data-manager:/logs
     environment:
+      TZ: Asia/Seoul
       DATASOURCE_URL: jdbc:postgresql://postgis:5432/smart_city
       DATASOURCE_SECONDARY_URL: jdbc:postgresql://postgis:5432/smart_city
       REST_PROXY_URL: http://rest-proxy:8082
       KAFKA_URL: broker:29092
-      KAFKA_SECURITY_YN: N
-      SECURITY_ACL_USEYN: N
+      KAFKA_SECURITY_YN: "N"
+      SECURITY_ACL_USEYN: "N"
       JVM_OPTS: -Xmx2048m -Xms2048m
 
   ingest-interface:
@@ -112,12 +118,13 @@ services:
     volumes:
       - ./logs/ingest-interface:/logs
     environment:
+      TZ: Asia/Seoul
       DATASOURCE_URL: jdbc:postgresql://postgis:5432/smart_city
       DATASOURCE_SECONDARY_URL: jdbc:postgresql://postgis:5432/smart_city
       KAFKA_URL: broker:29092
-      KAFKA_SECURITY_YN: N
+      KAFKA_SECURITY_YN: "N"
       SPRING_PROFILES_ACTIVE: local
-      SECURITY_ACL_USEYN: N
+      SECURITY_ACL_USEYN: "N"
       JVM_OPTS: -Xmx2048m -Xms2048m
 
   data-service-broker:
@@ -131,11 +138,12 @@ services:
     volumes:
       - ./logs/data-service-broker:/logs
     environment:
+      TZ: Asia/Seoul
       DATASOURCE_URL: jdbc:postgresql://postgis:5432/smart_city
       DATASOURCE_SECONDARY_URL: jdbc:postgresql://postgis:5432/smart_city
       KAFKA_URL: broker:29092
-      KAFKA_SECURITY_YN: N
-      SECURITY_ACL_USEYN: N
+      KAFKA_SECURITY_YN: "N"
+      SECURITY_ACL_USEYN: "N"
       JVM_OPTS: -Xmx2048m -Xms2048m
 
   datacore-ui:
@@ -149,6 +157,7 @@ services:
     volumes:
       - ./logs/datacore-ui:/logs
     environment:
+      TZ: Asia/Seoul
       DATASOURCE_URL: jdbc:postgresql://postgis:5432/smart_city
       DATASOURCE_SECONDARY_URL: jdbc:postgresql://postgis:5432/smart_city
       DATAMANAGER_URL: http://data-manager:8080
@@ -175,6 +184,7 @@ services:
     volumes:
       - ./logs/datacore-usertool:/logs
     environment:
+      TZ: Asia/Seoul
       DATASOURCE_URL: jdbc:postgresql://postgis:5432/smart_city
       DATASOURCE_SECONDARY_URL: jdbc:postgresql://postgis:5432/smart_city
       DATAMANAGER_URL: http://data-manager:8080
@@ -200,7 +210,8 @@ services:
     volumes:
       - ./logs/push-agent:/logs
     environment:
+      TZ: Asia/Seoul
       KAFKA_URL: broker:29092
-      KAFKA_SECURITY_YN: N
-      SECURITY_ACL_USEYN: N
+      KAFKA_SECURITY_YN: "N"
+      SECURITY_ACL_USEYN: "N"
       JVM_OPTS: -Xmx2048m -Xms2048m

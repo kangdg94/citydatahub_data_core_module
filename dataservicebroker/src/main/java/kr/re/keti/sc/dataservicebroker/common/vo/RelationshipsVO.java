@@ -10,11 +10,11 @@ public class RelationshipsVO extends AttributeVO {
         this.setType(DataServiceBrokerCode.AttributeType.RELATIONSHIP.getCode());
     }
 
-    public Object getObject() {
+    public Object getObjects() {
         return super.get("objects");
     }
 
-    public void setObject(Object object) {
+    public void setObjects(Object object) {
         super.put("objects", object);
 
     }

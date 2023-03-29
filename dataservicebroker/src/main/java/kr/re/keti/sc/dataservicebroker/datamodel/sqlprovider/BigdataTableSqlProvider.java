@@ -451,44 +451,75 @@ public class BigdataTableSqlProvider {
     StringBuilder sql = new StringBuilder();
     //		sql.append("ALTER TABLE ").append(tableName).append(LINE_SEPARATOR);
     sql.append("ALTER TABLE ").append(tableName);
+
+    needAddColumn = true;
     for (Map.Entry<DataModelDbColumnVO, DbOperation> entry : dbOperationMap.entrySet()) {
       DataModelDbColumnVO dataModelDbColumnVO = entry.getKey();
 
       // 컬럼 alter 쿼리 세팅
       if (entry.getValue() == DbOperation.ADD_COLUMN) {
-        sql
-          .append(" ADD COLUMNS (`")
-          .append(dataModelDbColumnVO.getColumnName())
-          .append("` ")
-          .append(dataModelDbColumnVO.getColumnType().getBigdataCode())
-          .append(",");
-      } else if (
-        entry.getValue() == DbOperation.ALTER_COLUMN_TYPE ||
-        entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_ADD_NOT_NULL ||
-        entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_DROP_NOT_NULL
-      ) {
-        if (!sql.toString().contains("-replace- columns")) {
-          sql.append(" -replace- columns (");
-        }
-
+        // VARCHAR -> STRING 
         if (dataModelDbColumnVO.getColumnType() == DbColumnType.VARCHAR) {
           dataModelDbColumnVO.setMaxLength(null);
           dataModelDbColumnVO.setColumnType(DbColumnType.STRING);
         }
 
-        sql.append(dataModelDbColumnVO.getColumnName());
-        sql
-          .append(" ")
-          .append(dataModelDbColumnVO.getColumnType().getBigdataCode());
-        if (dataModelDbColumnVO.getMaxLength() != null) {
+        if (needAddColumn) {
           sql
-            .append("(")
-            .append(dataModelDbColumnVO.getMaxLength())
-            .append(")");
+          .append(" ADD COLUMNS (`")
+          .append(dataModelDbColumnVO.getColumnName())
+          .append("` ")
+          .append(dataModelDbColumnVO.getColumnType().getBigdataCode())
+          .append(",");   // space bar 제외
+          needAddColumn = false;
+        }else{
+          sql
+          .append("`")
+          .append(dataModelDbColumnVO.getColumnName())
+          .append("` ")
+          .append(dataModelDbColumnVO.getColumnType().getBigdataCode())
+          .append(",");
         }
-        // sql.append(" USING ").append(dataModelDbColumnVO.getColumnName()).append("::")
-        // sql.append(dataModelDbColumnVO.getColumnType().getBigdataCode())
-        sql.append(",");
+      // if (entry.getValue() == DbOperation.ADD_COLUMN) {
+      //   sql
+      //     .append(" ADD COLUMNS (`")
+      //     .append(dataModelDbColumnVO.getColumnName())
+      //     .append("` ")
+      //     .append(dataModelDbColumnVO.getColumnType().getBigdataCode())
+      //     .append(",");
+        } 
+      else if (
+        entry.getValue() == DbOperation.ALTER_COLUMN_TYPE ||
+        entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_ADD_NOT_NULL ||
+        entry.getValue() == DbOperation.ALTER_COLUMN_TYPE_AND_DROP_NOT_NULL
+      ) {
+        throw new BadRequestException(
+            ErrorCode.PROVISIONING_ERROR,
+            "BigData not supported change column"
+            );
+        // if (!sql.toString().contains("-replace- columns")) {
+        //   sql.append(" -replace- columns (");
+        // }
+
+        // if (dataModelDbColumnVO.getColumnType() == DbColumnType.VARCHAR) {
+        //   dataModelDbColumnVO.setMaxLength(null);
+        //   dataModelDbColumnVO.setColumnType(DbColumnType.STRING);
+        // }
+
+        // sql.append(dataModelDbColumnVO.getColumnName());
+        
+        // sql
+        //   .append(" ")
+        //   .append(dataModelDbColumnVO.getColumnType().getBigdataCode());
+        // if (dataModelDbColumnVO.getMaxLength() != null) {
+        //   sql
+        //     .append("(")
+        //     .append(dataModelDbColumnVO.getMaxLength())
+        //     .append(")");
+        // }
+        // // sql.append(" USING ").append(dataModelDbColumnVO.getColumnName()).append("::")
+        // // sql.append(dataModelDbColumnVO.getColumnType().getBigdataCode())
+        // sql.append(",");
       } else if (entry.getValue() == DbOperation.DROP_COLUMN) {
         sql
           .append(dataModelDbColumnVO.getColumnName())
@@ -517,7 +548,7 @@ public class BigdataTableSqlProvider {
       }
       //			sql.append(LINE_SEPARATOR);
     }
-    sql.deleteCharAt(sql.length() - 2); // 가장 뒤 콤마 제거
+    sql.deleteCharAt(sql.length() - 1); // 가장 뒤 콤마 제거
     //		sql.append(");").append(LINE_SEPARATOR).append(LINE_SEPARATOR);
     sql.append(");");
     return sql.toString();
@@ -686,25 +717,26 @@ public class BigdataTableSqlProvider {
     DbOperation dbOperation
   ) {
     StringBuilder sql = new StringBuilder();
-    //		sql.append("ALTER TABLE ").append(tableName).append(LINE_SEPARATOR);
     sql.append("ALTER TABLE ").append(tableName);
-
-    StringBuilder addColumnSql = new StringBuilder();
-    generateDynamicColumnSql(
-      addColumnSql,
-      null,
-      attribute,
-      storageMetadataVO,
-      false,
-      dbOperation
+    if (dbOperation == DbOperation.ADD_COLUMN) {
+      sql.append(" ADD COLUMNS (");
+      StringBuilder addColumnSql = new StringBuilder();
+      generateDynamicColumnSql(
+        addColumnSql,
+        null,
+        attribute,
+        storageMetadataVO,
+        false,
+        dbOperation
     );
     addColumnSql.deleteCharAt(0); // sql 가장 앞 콤마 제거
     sql.append(addColumnSql);
     sql.append(")");
-    //		sql.append(";").append(LINE_SEPARATOR).append(LINE_SEPARATOR);
     sql.append(";");
-
-    return sql.toString();
+  }else {
+    throw new UnsupportedOperationException("Bigdata not supported " + dbOperation + ". : " + tableName + " " + attribute);
+  }
+  return sql.toString();
   }
 
   //@todo: Current Drop Column is not working. The method would be implemented later if necessary
@@ -1411,7 +1443,7 @@ public class BigdataTableSqlProvider {
       columnType = dataModelManager.valueTypeToDbColumnType(valueType);
     }
 
-    if (columnType == DbColumnType.VARCHAR) {
+    if (columnType.getBigdataCode() == DbColumnType.VARCHAR.getBigdataCode()) {
       maxLength = null;
       columnType = DbColumnType.STRING;
     }
@@ -1428,13 +1460,14 @@ public class BigdataTableSqlProvider {
 		 */
 
     sql.append(", ");
-    if (dbOperation == DbOperation.ADD_COLUMN) {
-      if (needAddColumn) {
-        sql.append("ADD COLUMNS (");
-        needAddColumn = false;
-      }
-      sql.append(attributeId).append(" ").append(columnType.getBigdataCode());
-    } else if (dbOperation == DbOperation.DROP_COLUMN) {
+    // if (dbOperation == DbOperation.ADD_COLUMN) {
+    //   if (needAddColumn) {
+    //     sql.append("ADD COLUMNS (");
+    //     needAddColumn = false;
+    //   }
+    //   sql.append(attributeId).append(" ").append(columnType.getBigdataCode());
+    // } else 
+    if (dbOperation == DbOperation.DROP_COLUMN) {
       sql.append(attributeId).append(" ").append(columnType.getBigdataCode());
       if (maxLength != null && hasMaxLengthColumnType(columnType)) {
         sql.append("(").append(maxLength).append(")");

@@ -213,6 +213,7 @@
     		OR CODE_NAME LIKE '%' || #{searchValue} || '%')
     	</if>
     	</where>
+		ORDER BY CODE_GROUP_ID,SORT_ORDER
     	<include refid="common.pagingFooterSql"/>
     </select>
 </mapper>

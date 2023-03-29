@@ -269,6 +269,14 @@ export default {
                 }
                 return traverse(rootNodes, item, index);
               });
+              rootNodes.sort((a, b) => a.sortOrder - b.sortOrder);
+              rootNodes.forEach(node => {
+                if(node['children']) {
+                  node['children'] = node['children'].sort(
+                    (a, b) => a.sortOrder - b.sortOrder
+                  );
+                }
+              });
               this.treeData = rootNodes;
             }
           }).catch((error) => {

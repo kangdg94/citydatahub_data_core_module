@@ -1,9 +1,8 @@
 package kr.re.keti.sc.dataservicebroker.common.vo;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
+import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -17,7 +16,7 @@ import kr.re.keti.sc.dataservicebroker.common.code.DataServiceBrokerCode.Default
 @SuppressWarnings("serial")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CommonEntityVO extends LinkedHashMap<String, Object> implements Comparable<CommonEntityVO> {
+public class CommonEntityVO extends LinkedHashMap<String, Object> implements Comparable<CommonEntityVO>, TermExpandable {
 
 	@JsonIgnore
 	private Date sortKey;
@@ -77,6 +76,13 @@ public class CommonEntityVO extends LinkedHashMap<String, Object> implements Com
 		this.sortKey = sortKey;
 	}
 
+    public String getType() {
+        return (String) super.get(DataServiceBrokerCode.DefaultAttributeKey.TYPE.getCode());
+    }
+    public void setType(String type) {
+        super.put(DataServiceBrokerCode.DefaultAttributeKey.TYPE.getCode(), type);
+    }
+
 	/**
      * @param commonEntityVO 수정시간 기준 내림 차순 정렬
      * @return
@@ -92,5 +98,116 @@ public class CommonEntityVO extends LinkedHashMap<String, Object> implements Com
     	}
 
     	return 0;
+    }
+
+    @Override
+    public void expandTerm(Map<String, String> dataModelContextMap) {
+        expandTerm(null, dataModelContextMap);
+    }
+
+    @Override
+    public void expandTerm(Map<String, String> requestContextMap, Map<String, String> dataModelContextMap) {
+        if (requestContextMap == null) requestContextMap = new HashMap<>();
+
+        expandKey(requestContextMap, dataModelContextMap);
+        expandValue(requestContextMap, dataModelContextMap);
+    }
+
+    void expandKey(Map<String, String> requestContextMap, Map<String, String> dataModelContextMap) {
+        expandKey(this, requestContextMap, dataModelContextMap);
+    }
+
+    private void expandKey(Map<String, Object> entityVO, Map<String, String> requestContextMap, Map<String, String> dataModelContextMap) {
+
+        List<String> targetKeys = new ArrayList<>();
+
+        Iterator<Map.Entry<String, Object>> it = entityVO.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Object> next = it.next();
+            String entryKey = next.getKey();
+            Object entryValue = next.getValue();
+
+            if (isReservedKey(entryKey)) {
+                continue;
+            }
+
+            if (isArrayAttribute(entryValue)) {
+                for (Map<String, Object> innerEntry : (List<Map<String, Object>>)entryValue) {
+                    expandKey(innerEntry, requestContextMap, dataModelContextMap);
+                }
+            } else if (isAttribute(entryValue)) {
+                expandKey((Map<String, Object>)entryValue, requestContextMap, dataModelContextMap);
+            }
+
+            String fullUriByRequest = requestContextMap.get(entryKey);
+            String fullUriByDataModel = dataModelContextMap.get(entryKey);
+            if (isExpansionTarget(fullUriByRequest, fullUriByDataModel)) {
+                targetKeys.add(entryKey);
+            }
+        }
+
+        for (String entryKey : targetKeys) {
+            entityVO.put(dataModelContextMap.get(entryKey), entityVO.get(entryKey));
+            entityVO.remove(entryKey);
+        }
+    }
+
+    private boolean isObjectMember(Object entryValue) {
+        if (entryValue instanceof Map) {
+            if (!((Map<String, Object>)entryValue).containsKey(DataServiceBrokerCode.PropertyKey.TYPE.getCode())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void expandValue(Map<String, String> requestContextMap, Map<String, String> dataModelContextMap) {
+        String fullUriByRequest = requestContextMap.get(this.getType());
+        String fullUriByDataModel = dataModelContextMap.get(this.getType());
+
+        if (isExpansionTarget(fullUriByRequest, fullUriByDataModel)) {
+            this.setType(fullUriByDataModel);
+        }
+    }
+
+    protected boolean isReservedKey(String key) {
+        if (DefaultAttributeKey.parseType(key) != null) {
+            return true;
+        } else if (DataServiceBrokerCode.AttributeResultType.parseType(key) != null) {
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean isExpansionTarget(String fullUriByRequest, String fullUriByDataModel) {
+
+        // 요청 context 기반으로 full uri 파싱이 불가능한 경우
+        if (ValidateUtil.isEmptyData(fullUriByRequest)) {
+            return true;
+
+        // 요청 context 기반으로 full uri 파싱은 가능하지만, dataModel의 full url와 다른 경우
+        } else if (!ValidateUtil.isEmptyData(fullUriByRequest)
+                && !ValidateUtil.isEmptyData(fullUriByDataModel)
+                && !fullUriByRequest.equals(fullUriByDataModel)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isArrayAttribute(Object entryValue) {
+        if (entryValue instanceof List
+                && !ValidateUtil.isEmptyData((List)entryValue)
+                && ((List<?>) entryValue).get(0) instanceof Map
+                && !isObjectMember(entryValue)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isAttribute(Object entryValue) {
+        if (entryValue instanceof Map && !isObjectMember(entryValue)) {
+            return true;
+        }
+        return false;
     }
 }

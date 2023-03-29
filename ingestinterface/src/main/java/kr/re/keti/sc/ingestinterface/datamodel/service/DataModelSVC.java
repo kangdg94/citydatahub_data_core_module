@@ -442,9 +442,11 @@ public class DataModelSVC {
 
             } else if (attributeType.equals(AttributeType.RELATIONSHIP)) {
 
-                if (attributeValueType != null && attributeValueType.equals(AttributeValueType.STRING)) {
-                    continue;
-                }
+				if (attributeValueType != null
+						&& (attributeValueType.equals(AttributeValueType.STRING)
+						|| attributeValueType.equals(AttributeValueType.ARRAY_STRING))) {
+					continue;
+				}
             } else if (attributeValueType != null && attributeType.equals(AttributeType.GEO_PROPERTY)) {
                 if (attributeValueType.equals(AttributeValueType.GEO_JSON)) {
                     continue;

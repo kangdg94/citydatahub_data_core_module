@@ -561,14 +561,19 @@ public class SubscriptionSVC {
         if(!ValidateUtil.isEmptyData(subscriptionVO.getEntities())) {
             for(SubscriptionVO.EntityInfo entityInfo : subscriptionVO.getEntities()) {
                 if(!ValidateUtil.isEmptyData(entityInfo.getType())) {
-                    // entityType이 full uri 인 경우 유효성 검증 skip
+                    // entityType이 full uri 인 경우 context 정보에 존재하는 지 유효성 검증
                     if(entityInfo.getType().startsWith("http")) {
-                        continue;
-                    }
+                        if(contextMap == null || !contextMap.containsValue(entityInfo.getType())) {
+                            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
+                                    "Invalid Parameter. Not exists entityType in context. entityType=" + entityInfo.getType());
+                        }
+
                     // entityType이 short name 인 경우 context 정보에 존재하는 지 유효성 검증
-                    if(contextMap == null || !contextMap.containsKey(entityInfo.getType())) {
-                        throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
-                                "Invalid Parameter. Not exists entityType in context. entityType=" + entityInfo.getType());
+                    } else {
+                        if(contextMap == null || !contextMap.containsKey(entityInfo.getType())) {
+                            throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
+                                    "Invalid Parameter. Not exists entityType in context. entityType=" + entityInfo.getType());
+                        }
                     }
                 }
             }
@@ -577,14 +582,19 @@ public class SubscriptionSVC {
         // validate watchAttributeName
         if(!ValidateUtil.isEmptyData(subscriptionVO.getWatchedAttributes())) {
             for(String watchAttributeName : subscriptionVO.getWatchedAttributes()) {
-                // watchAttributeName이 full uri 인 경우 유효성 검증 skip
+                // watchAttributeName이 full uri 인 경우 context 정보에 존재하는 지 유효성 검증
                 if(watchAttributeName.startsWith("http")) {
-                    continue;
-                }
+                    if(contextMap == null || !contextMap.containsValue(watchAttributeName)) {
+                        throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
+                                "Invalid Parameter. Not exists watchAttributeName in context. watchAttributeName=" + watchAttributeName);
+                    }
+
                 // watchAttributeName이 short name 인 경우 context 정보에 존재하는 지 유효성 검증
-                if(contextMap == null || !contextMap.containsKey(watchAttributeName)) {
-                    throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
-                            "Invalid Parameter. Not exists watchAttributeName in context. watchAttributeName=" + watchAttributeName);
+                } else {
+                    if(contextMap == null || !contextMap.containsKey(watchAttributeName)) {
+                        throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
+                                "Invalid Parameter. Not exists watchAttributeName in context. watchAttributeName=" + watchAttributeName);
+                    }
                 }
             }
         }
@@ -593,14 +603,19 @@ public class SubscriptionSVC {
         if(subscriptionVO.getNotification() != null
                 && !ValidateUtil.isEmptyData(subscriptionVO.getNotification().getAttributes())) {
             for(String notificationAttributeName : subscriptionVO.getNotification().getAttributes()) {
-                // watchAttributeName이 full uri 인 경우 유효성 검증 skip
+                // watchAttributeName이 full uri 인 경우 context 정보에 존재하는 지 유효성 검증
                 if(notificationAttributeName.startsWith("http")) {
-                    continue;
-                }
+                    if(contextMap == null || !contextMap.containsValue(notificationAttributeName)) {
+                        throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
+                                "Invalid Parameter. Not exists notificationAttributeName in context. notificationAttributeName=" + notificationAttributeName);
+                    }
+
                 // notificationAttributeName이 short name 인 경우 context 정보에 존재하는 지 유효성 검증
-                if(contextMap == null || !contextMap.containsKey(notificationAttributeName)) {
-                    throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
-                            "Invalid Parameter. Not exists notificationAttributeName in context. notificationAttributeName=" + notificationAttributeName);
+                } else {
+                    if(contextMap == null || !contextMap.containsKey(notificationAttributeName)) {
+                        throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER,
+                                "Invalid Parameter. Not exists notificationAttributeName in context. notificationAttributeName=" + notificationAttributeName);
+                    }
                 }
             }
         }

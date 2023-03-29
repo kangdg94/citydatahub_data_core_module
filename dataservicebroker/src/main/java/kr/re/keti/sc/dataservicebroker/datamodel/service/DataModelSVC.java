@@ -502,7 +502,7 @@ public class DataModelSVC {
 						attributeDdl = bigDataTableSqlProvider.generateAlterTableColumnDdl(id, beforeAttribute, afterAttribute);
 						break;
 					} case REMOVE_ATTRIBUTE: {
-						throw new UnsupportedOperationException("Hive not supported drop column");
+						throw new UnsupportedOperationException("Bigdata not supported drop column");
 					} default: {
 						break;
 					}
@@ -804,7 +804,9 @@ public class DataModelSVC {
 
             } else if (attributeType.equals(AttributeType.RELATIONSHIP)) {
 
-                if (attributeValueType != null && attributeValueType.equals(AttributeValueType.STRING)) {
+                if (attributeValueType != null
+						&& (attributeValueType.equals(AttributeValueType.STRING)
+							|| attributeValueType.equals(AttributeValueType.ARRAY_STRING))) {
                     continue;
                 }
             } else if (attributeValueType != null && attributeType.equals(AttributeType.GEO_PROPERTY)) {

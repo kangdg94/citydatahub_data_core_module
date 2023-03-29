@@ -320,6 +320,42 @@ public class DataModelManager {
     return resultDataModels;
   }
 
+  public void validateGeoAndQQuery (
+          List<String> links,
+          QueryVO queryVO,
+          DataModelCacheVO dataModelCacheVO
+  ) {
+    boolean includeQQuery = QueryUtil.includeQQuery(queryVO);
+    boolean includeGeoQuery = QueryUtil.includeGeoQuery(queryVO);
+
+    // q-query attriute 검증
+    if (includeQQuery) {
+      List<String> queryAttrNameList = QueryUtil.extractQueryFieldNames(queryVO);
+      List<String> fullUriAttrs = convertAttrNameToFullUri(links, queryAttrNameList);
+
+      if (!includeAttrInDataModel(dataModelCacheVO.getDataModelVO(), fullUriAttrs)) {
+        throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "Invalid attrs. q=" + queryVO.getQ() + ", link=" + links);
+      }
+    }
+
+    // geo-query attriute 검증
+    if (includeGeoQuery) {
+      String geoPropertyName = queryVO.getGeoproperty() == null
+              ? Constants.LOCATION_ATTR_DEFAULT_NAME
+              : queryVO.getGeoproperty();
+      List<String> fullUriAttrs = convertAttrNameToFullUri(links, Arrays.asList(geoPropertyName));
+
+      if (!includeAttrInDataModel(dataModelCacheVO.getDataModelVO(), fullUriAttrs)) {
+        throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                "Invalid attrs. geoRel=" + queryVO.getGeorel()
+                        + "geoMetry=" + queryVO.getGeometry()
+                        + "coordinates=" + queryVO.getCoordinates()
+                        + ", link=" + links);
+      }
+    }
+  }
+
+
   private boolean includeAttrInDataModel(
     DataModelVO dataModelVO,
     List<String> fullUriAttrs
@@ -709,7 +745,7 @@ public class DataModelManager {
     } else if (rootAttribute.getAttributeType() == AttributeType.RELATIONSHIP) {
       DataModelDbColumnVO dbColumnInfoVO = createDbColumnInfoVO(
         currentHierarchyIds,
-        AttributeValueType.STRING,
+              rootAttribute.getValueType() == null ? AttributeValueType.STRING : rootAttribute.getValueType(),
         rootAttribute.getMaxLength(),
         rootAttribute.getIsRequired(),
         false,

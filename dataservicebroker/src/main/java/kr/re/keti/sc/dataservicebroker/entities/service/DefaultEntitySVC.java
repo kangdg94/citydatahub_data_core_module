@@ -3,13 +3,7 @@ package kr.re.keti.sc.dataservicebroker.entities.service;
 import java.io.IOException;
 import java.math. BigDecimal;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.geojson.GeoJsonObject;
@@ -193,14 +187,8 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                     }
                 }
 
-                if(entityFullVO.getContext() == null) {
-                    entityFullVO.setContext(new ArrayList<>());
-                }
-
-                // default context-uri 값을 context 정보 가장 뒤에 추가
-                if(!ValidateUtil.isEmptyData(defaultContextUri)) {
-                    entityFullVO.getContext().add(0, defaultContextUri);
-                }
+                // @context가 존재하지 않을 경우 default context 사용
+                setDefaultContextIfEmpty(entityFullVO);
 
                 validateEntityId(entityFullVO.getId());
 
@@ -278,6 +266,12 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
         }
 
         return entityProcessVOList;
+    }
+
+    private void setDefaultContextIfEmpty(DynamicEntityFullVO entityFullVO) {
+        if(ValidateUtil.isEmptyData(entityFullVO.getContext())) {
+            entityFullVO.setContext(Arrays.asList(defaultContextUri));
+        }
     }
 
     private void validateEntityId(String entityId) {
@@ -364,32 +358,12 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 
         for (Attribute rootAttribute : rootAttributes) {
 
-            if(!ValidateUtil.isEmptyData(dynamicEntityDaoVO.getContext())) {
-                String currentEntityFullUri = contextMap.get(rootAttribute.getName());
-
-                if(ValidateUtil.isEmptyData(currentEntityFullUri)) {
-                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
-                            "Invalid Request Content. Not exists attribute in @context. attribute name=" + rootAttribute.getName());
-                }
-
-                if (!currentEntityFullUri.equals(rootAttribute.getAttributeUri())) {
-                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
-                            "Invalid Request Content. No match attribute full uri. attribute name={}" + rootAttribute.getName()
-                                    + ", dataModel attribute uri=" + rootAttribute.getAttributeUri() + " but ingest attribute uri=" + currentEntityFullUri);
-                }
-            }
-
-            String attributeKey = null;
-            // short name 으로 조회
-            if (currentEntityVO.containsKey(rootAttribute.getName())) {
-                attributeKey = rootAttribute.getName();
-            } else {
-                // full uri로 조회
-                if (currentEntityVO.containsKey(rootAttribute.getAttributeUri())) {
-                    attributeKey = rootAttribute.getAttributeUri();
-                } else {
-                    continue;
-                }
+            // 1. get attribute key name
+            // request entity attribute 중에 dataModel에 속한 attribute Key 값 추출
+            //  - short name 일수도 있고, full uri 형태일 수도 있음 (request 로 인입된 값 그대로 추출)
+            String attributeKey = getAttributeKey(currentEntityVO, rootAttribute, contextMap);
+            if (attributeKey == null) {
+                continue;
             }
 
             List<String> currentHierarchyIds = new ArrayList<>();
@@ -398,19 +372,10 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
             }
             currentHierarchyIds.add(rootAttribute.getName());
 
-            // 1. get attribute 
-            Map<String, Object> attribute = null;
-            Object attributeValue = null;
-            try {
-                attributeValue = currentEntityVO.get(attributeKey);
-                attribute = (Map<String, Object>) attributeValue;
-            } catch (ClassCastException e) {
-                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
-                        "Invalid Request Content. attributeId=" + rootAttribute.getName() +
-                                ", valueType=" + rootAttribute.getValueType().getCode() + ", value=" + attributeValue);
-            }
+            // 2. get attribute data
+            Map<String, Object> attribute = getAttributeData(currentEntityVO, rootAttribute, attributeKey);
 
-            // 2. 필수값 체크
+            // 3. check mandatory field
             checkDefaultParam(attribute, attributeKey);
 
             // 3-1. type이 Property인 경우
@@ -506,9 +471,28 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                                     ", valueType=" + AttributeValueType.GEO_JSON.getCode() + ", value=" + value);
                 }
             } else if (DataServiceBrokerCode.AttributeType.RELATIONSHIP == rootAttribute.getAttributeType()) {
-                Object object = attribute.get(PropertyKey.OBJECT.getCode());
+
+                if (rootAttribute.getValueType() == AttributeValueType.ARRAY_STRING
+                    && attribute.containsKey(PropertyKey.OBJECT.getCode())) {
+                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                            "Invalid Request Content. only allow objects. attribute=" + rootAttribute.getName());
+                }
+
+                if (rootAttribute.getValueType() == AttributeValueType.STRING
+                        && attribute.containsKey(PropertyKey.OBJECTS.getCode())) {
+                    throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                            "Invalid Request Content. only allow object. attribute=" + rootAttribute.getName());
+                }
+
+                PropertyKey propertyKey = PropertyKey.OBJECT;
+                if (rootAttribute.getValueType() == AttributeValueType.ARRAY_STRING) {
+                    propertyKey = PropertyKey.OBJECTS;
+                }
+
+                Object object = attribute.get(propertyKey.getCode());
+
                 // 세부 파라미터 유효성 체크
-                checkObjectType(rootAttribute.getName(), AttributeValueType.STRING, object, rootAttribute);
+                checkObjectType(rootAttribute.getName(), rootAttribute.getValueType(), object, rootAttribute);
 
                 String id = dataModelManager.getColumnNameByStorageMetadata(storageMetadataVO, currentHierarchyIds);
                 dynamicEntityDaoVO.put(id, object);
@@ -568,6 +552,41 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
         }
     }
 
+    private Map<String, Object> getAttributeData(Map<String, Object> currentEntityVO, Attribute rootAttribute, String attributeKey) {
+        Map<String, Object> attribute = null;
+        Object attributeValue = null;
+        try {
+            attributeValue = currentEntityVO.get(attributeKey);
+            attribute = (Map<String, Object>) attributeValue;
+        } catch (ClassCastException e) {
+            throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                    "Invalid Request Content. attributeId=" + rootAttribute.getName() +
+                            ", valueType=" + rootAttribute.getValueType().getCode() + ", value=" + attributeValue);
+        }
+        return attribute;
+    }
+
+    private String getAttributeKey(Map<String, Object> currentEntityVO, Attribute rootAttribute, Map<String, String> contextMap) {
+
+        String attributeKey = null;
+        // short name 으로 조회
+        if (currentEntityVO.containsKey(rootAttribute.getName())) {
+            attributeKey = rootAttribute.getName();
+            // request attribute 와 model의 attribute full uri 가 다른 경우
+            if (!rootAttribute.getAttributeUri().equals(contextMap.get(attributeKey))) {
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
+                        "Invalid Request Content. No match attribute full uri. attribute name=" + rootAttribute.getName()
+                                + ", dataModel attribute uri=" + rootAttribute.getAttributeUri() + " but ingest attribute uri=" + contextMap.get(attributeKey));
+            }
+        } else {
+            // full uri로 조회
+            if (currentEntityVO.containsKey(rootAttribute.getAttributeUri())) {
+                attributeKey = rootAttribute.getAttributeUri();
+            }
+        }
+        return attributeKey;
+    }
+
     /**
      * 필수값 체크
      *
@@ -597,9 +616,10 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                         "Not found Property value. attributeId=" + attributeId);
             }
         } else if (attribute.get(PropertyKey.TYPE.getCode()) == AttributeType.RELATIONSHIP) {
-            if (attribute.get(PropertyKey.OBJECT.getCode()) == null) {
+            if (attribute.get(PropertyKey.OBJECT.getCode()) == null
+                && attribute.get(PropertyKey.OBJECTS.getCode()) == null) {
                 throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER,
-                        "Not found Relationship object. attributeId=" + attributeId);
+                        "Not found Relationship object and objects. attributeId=" + attributeId);
             }
         }
     }
@@ -983,8 +1003,9 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
         } else if (type.equalsIgnoreCase(AttributeType.RELATIONSHIP.getCode())) {
             // RELATIONSHIP 형 item 체크
             Object objectItem = attrValue.get(PropertyKey.OBJECT.getCode());
-            if (objectItem == null) {
-                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "Not found object : " + entry.getKey());
+            Object objectsItem = attrValue.get(PropertyKey.OBJECTS.getCode());
+            if (objectItem == null && objectsItem == null) {
+                throw new NgsiLdBadRequestException(ErrorCode.INVALID_PARAMETER, "Not found object and objects. attribute=: " + entry.getKey());
             }
             //동일 레벨 attribute 체크
             checkInnerAttribute(attrKey, attrValue, attribute);
@@ -1069,6 +1090,7 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                 String relationshipMapKey = relationshipMap.getKey();
                 if (relationshipMapKey.equals(PropertyKey.TYPE.getCode())
                         || relationshipMapKey.equals(PropertyKey.OBJECT.getCode())
+                        || relationshipMapKey.equals(PropertyKey.OBJECTS.getCode())
                         || relationshipMapKey.equals(PropertyKey.OBSERVED_AT.getCode())) {
                     continue;
                 }
@@ -2347,10 +2369,15 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 
     public List<CommonEntityVO> selectAllWithType(QueryVO queryVO, String accept) {
 
+        // 1. type 조회 및 검증
         DataModelCacheVO dataModelCacheVO = dataModelManager.getDataModelVOCacheByContext(queryVO.getLinks(), queryVO.getType());
         if (dataModelCacheVO == null) {
-            throw new NgsiLdNoExistTypeException(ErrorCode.NOT_EXIST_ENTITY, "Invalid EntityType. entityType=" + queryVO.getType() + ", link=" + queryVO.getLinks());
+            throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Invalid Type. entityType=" + queryVO.getType() + ", link=" + queryVO.getLinks());
         }
+
+        // 2. q-query 파라미터가 type에 속하는 지 검증
+        dataModelManager.validateGeoAndQQuery(queryVO.getLinks(), queryVO, dataModelCacheVO);
+
         queryVO.setDataModelCacheVO(dataModelCacheVO);
 
         // 데이터모델의 테이블이 아직 생성되지 않은 경우 (데이터셋 흐름 설정이 되지 않거나 해당 storageType과 일치하지 않는 경우)
@@ -2385,13 +2412,24 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 
                 // 3. 요청 header의 accept가 'application/ld+json' 일 경우 @context 정보 추가
                 if (commonEntityVO != null && accept.equals(Constants.APPLICATION_LD_JSON_VALUE)) {
-                    commonEntityVO.setContext(dataModelCacheVO.getDataModelVO().getContext());
+                    List<String> link = getLinkOrDefault(queryVO.getLinks());
+                    if (!ValidateUtil.isEmptyData(link)) {
+                        commonEntityVO.setContext(link);
+                    }
                 }
 
                 if(commonEntityVO != null) {
                     commonEntityVOList.add(commonEntityVO);
                 }
             }
+
+            // 4. term expand
+            commonEntityVOList.forEach(
+                    commonEntityVO -> commonEntityVO.expandTerm(
+                            dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
+                            dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
+                    )
+            );
         }
 
         return commonEntityVOList;
@@ -2461,11 +2499,20 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                 // options이 없을 경우 처리, Full Representation
                 commonEntityVO = this.daoVOToFullRepresentationVO(entityDaoVO, dataModelCacheVO, includeSysAttrs, queryVO.getAttrs());
             }
+
+            // 5. term expand
+            commonEntityVO.expandTerm(
+                    dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
+                    dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
+            );
         }
 
         // 5. 요청 header의 accept가 'application/ld+json' 일 경우 @context 정보 추가
         if (commonEntityVO != null && accept.equals(Constants.APPLICATION_LD_JSON_VALUE)) {
-            commonEntityVO.setContext(dataModelCacheVO.getDataModelVO().getContext());
+            List<String> link = getLinkOrDefault(queryVO.getLinks());
+            if (!ValidateUtil.isEmptyData(link)) {
+                commonEntityVO.setContext(link);
+            }
         }
 
         return commonEntityVO;
@@ -2544,10 +2591,15 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
             log.debug("request msg='{}'", requestParams);
         }
 
+        // 1. type 조회 및 검증
         DataModelCacheVO dataModelCacheVO = dataModelManager.getDataModelVOCacheByContext(queryVO.getLinks(), queryVO.getType());
         if (dataModelCacheVO == null) {
-            throw new NgsiLdNoExistTypeException(ErrorCode.NOT_EXIST_ENTITY, "Not Exist EntityType. entityType=" + queryVO.getType());
+            throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Invalid Type. entityType=" + queryVO.getType() + ", link=" + queryVO.getLinks());
         }
+
+        // 2. q-query 파라미터가 type에 속하는 지 검증
+        dataModelManager.validateGeoAndQQuery(queryVO.getLinks(), queryVO, dataModelCacheVO);
+
         queryVO.setDataModelCacheVO(dataModelCacheVO);
 
         // 데이터모델의 테이블이 아직 생성되지 않은 경우 (데이터셋 흐름 설정이 되지 않거나 해당 storageType과 일치하지 않는 경우)
@@ -2576,6 +2628,21 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
                 commonEntityVOList = this.daoVOToTemporalFullRepresentationVO(entityDaoVOList, dataModelCacheVO, lastN, accept);
             }
         }
+
+        // 요청 header의 accept가 'application/ld+json' 일 경우 @context 정보 추가
+        if (accept.equals(Constants.APPLICATION_LD_JSON_VALUE)) {
+            List<String> link = getLinkOrDefault(queryVO.getLinks());
+            if (!ValidateUtil.isEmptyData(link)) {
+                commonEntityVOList.forEach(commonEntityVO -> commonEntityVO.setContext(link));
+            }
+        }
+
+        // term expand
+        commonEntityVOList.forEach(commonEntityVO -> commonEntityVO.expandTerm(
+                dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
+                dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
+        ));
+
         return commonEntityVOList;
     }
 
@@ -2650,10 +2717,26 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 
         if (commonEntityVOList != null && commonEntityVOList.size() > 0) {
             commonEntityVO = commonEntityVOList.get(0);
+
+            // 요청 header의 accept가 'application/ld+json' 일 경우 @context 정보 추가
+            if (accept.equals(Constants.APPLICATION_LD_JSON_VALUE)) {
+                List<String> link = getLinkOrDefault(queryVO.getLinks());
+                if (!ValidateUtil.isEmptyData(link)) {
+                    commonEntityVO.setContext(link);
+                }
+            }
+
         } else {
             //조회된 결과값이 없을 경우, 규격을 맞추기 위해 빈 객체 리턴함
             commonEntityVO = new CommonEntityVO();
         }
+
+        // term expand
+        commonEntityVO.expandTerm(
+                dataModelManager.contextToFlatMap(getLinkOrDefault(queryVO.getLinks())),
+                dataModelManager.contextToFlatMap(dataModelCacheVO.getDataModelVO().getContext())
+        );
+
         return commonEntityVO;
     }
 
@@ -2732,10 +2815,16 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 
 
     private Integer getEntityCountWithType(QueryVO queryVO) {
+
+        // 1. type 조회 및 검증
         DataModelCacheVO dataModelCacheVO = dataModelManager.getDataModelVOCacheByContext(queryVO.getLinks(), queryVO.getType());
         if (dataModelCacheVO == null) {
             throw new NgsiLdBadRequestException(ErrorCode.NOT_EXIST_ENTITY, "Invalid Type. entityType=" + queryVO.getType() + ", link=" + queryVO.getLinks());
         }
+
+        // 2. q-query 파라미터가 type에 속하는 지 검증
+        dataModelManager.validateGeoAndQQuery(queryVO.getLinks(), queryVO, dataModelCacheVO);
+
         queryVO.setDataModelCacheVO(dataModelCacheVO);
 
         // 데이터모델의 테이블이 아직 생성되지 않은 경우 (데이터셋 흐름 설정이 되지 않거나 해당 storageType과 일치하지 않는 경우)
@@ -2883,5 +2972,12 @@ public abstract class DefaultEntitySVC implements EntitySVCInterface<DynamicEnti
 	            return false;
 	        }
 	        return true;
-	    }
+    }
+
+    private List<String> getLinkOrDefault(List<String> link) {
+        if (!ValidateUtil.isEmptyData(link)) {
+            return link;
+        }
+        return Collections.singletonList(defaultContextUri);
+    }
 }

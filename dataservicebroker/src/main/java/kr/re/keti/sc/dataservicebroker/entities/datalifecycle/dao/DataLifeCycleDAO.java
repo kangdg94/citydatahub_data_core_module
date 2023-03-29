@@ -10,19 +10,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Repository
-public class DataLifeCyleDAO {
+public class DataLifeCycleDAO {
 
     @Autowired
     private SqlSessionTemplate sqlSession;
 
-    public int deleteEntity(String tableName, String datasetId, Date lifeCyleDate) {
+    public int deleteEntity(String tableName, String datasetId, Date lifeCycleDate) {
 
         Map<String, Object> param = new HashMap<>();
         param.put("tableName", tableName);
         param.put("datasetId", datasetId);
-        param.put("lifeCyleDate", lifeCyleDate);
+        param.put("lifeCycleDate", lifeCycleDate);
 
-        return sqlSession.update("dataservicebroker.datalifecyle.deleteEntity", param);
+        return sqlSession.update("dataservicebroker.datalifecycle.deleteEntity", param);
     }
 
 }

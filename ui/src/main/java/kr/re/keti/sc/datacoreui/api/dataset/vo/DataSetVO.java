@@ -63,4 +63,8 @@ public class DataSetVO {
 	/** Topic retention period (ms) */
 	private Long topicRetention;
 
+	private String creatorId;
+	
+	private String modifierId;
+
 }

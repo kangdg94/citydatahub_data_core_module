@@ -89,7 +89,7 @@ datacore:
   # 데이터 라이프 사이클 관리를 위한 스케줄러 (*설정 :  새벽 2시)
   data:
     life:
-      cyle:
+      cycle:
         cron: 0 0 2 * * *
 #        cron:  0/5 * * * * *
 
@@ -113,7 +113,6 @@ entity:
   retrieve:
     default.limit: 10000
     include.datasetid: N
-    include.context: N
     primary.accept: application/json
   history:
     # 이력 조회시 full이력 조회 여부, N일 경우 partial이력 조회

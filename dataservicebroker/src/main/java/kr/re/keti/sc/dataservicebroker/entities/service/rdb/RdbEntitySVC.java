@@ -383,9 +383,15 @@ public class RdbEntitySVC extends DefaultEntitySVC {
             attributeVO = propertyVO;
         } else if (attribute.getAttributeType() == AttributeType.RELATIONSHIP) {
 
-            RelationshipVO relationshipVO = new RelationshipVO();
-            relationshipVO.setObject(result);
-            attributeVO = relationshipVO;
+            if (attribute.getValueType() == AttributeValueType.ARRAY_STRING) {
+                RelationshipsVO relationshipsVO = new RelationshipsVO();
+                relationshipsVO.setObjects(result);
+                attributeVO = relationshipsVO;
+            } else {
+                RelationshipVO relationshipVO = new RelationshipVO();
+                relationshipVO.setObject(result);
+                attributeVO = relationshipVO;
+            }
 
         } else if (attribute.getAttributeType() == AttributeType.GEO_PROPERTY) {
             GeoPropertyVO geoPropertyVO = new GeoPropertyVO();
@@ -499,6 +505,9 @@ public class RdbEntitySVC extends DefaultEntitySVC {
         } else if (objectValue instanceof RelationshipVO) {
             RelationshipVO relationshipVO = (RelationshipVO) objectValue;
             return relationshipVO.getObject();
+        } else if (objectValue instanceof RelationshipsVO) {
+            RelationshipsVO relationshipsVO = (RelationshipsVO) objectValue;
+            return relationshipsVO.getObjects();
         } else if (objectValue instanceof GeoPropertyVO) {
             GeoPropertyVO geoPropertyVO = (GeoPropertyVO) objectValue;
             return geoPropertyVO.getValue();
@@ -660,7 +669,13 @@ public class RdbEntitySVC extends DefaultEntitySVC {
                     } else if (attributeVO.getType().equalsIgnoreCase(AttributeType.GEO_PROPERTY.getCode())) {
                         reList.add( attributeVO.get(PropertyKey.VALUE.getCode()));
                     }else if (attributeVO.getType().equalsIgnoreCase(AttributeType.RELATIONSHIP.getCode())) {
-                        reList.add( attributeVO.get(PropertyKey.OBJECT.getCode()));
+
+                        if (attributeVO.get(PropertyKey.OBJECTS.getCode()) != null) {
+                            reList.add( attributeVO.get(PropertyKey.OBJECTS.getCode()));
+                        } else {
+                            reList.add( attributeVO.get(PropertyKey.OBJECT.getCode()));
+                        }
+
                     } else {
                         throw new NgsiLdBadRequestException(DataServiceBrokerCode.ErrorCode.INVALID_PARAMETER, "should include value or object");
                     }
@@ -686,10 +701,16 @@ public class RdbEntitySVC extends DefaultEntitySVC {
 
                 } else if (attributeVO.getType().equalsIgnoreCase(AttributeType.RELATIONSHIP.getCode())) {
 
+                    if (attributeVO.get(PropertyKey.OBJECTS.getCode()) != null) {
+                        RelationshipsVO relationshipsVO = new RelationshipsVO();
+                        relationshipsVO.setObjects(midList);
+                        vo.replace(key, relationshipsVO);
+                    } else {
+                        RelationshipVO relationshipVO = new RelationshipVO();
+                        relationshipVO.setObject(midList);
+                        vo.replace(key, relationshipVO);
+                    }
 
-                    RelationshipsVO relationshipsVO = new RelationshipsVO();
-                    relationshipsVO.setObject(midList);
-                    vo.replace(key, relationshipsVO);
                 } else {
                     vo.replace(key, midList);
                 }

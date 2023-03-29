@@ -356,6 +356,7 @@ public class DataServiceBrokerCode {
     VALUE("value"),
     OBSERVED_AT("observedAt"),
     OBJECT("object"),
+    OBJECTS("objects"),
     COORDINATES("coordinates"),
     UNIT_CODE("unitCode"),
     CREATED_AT("createdAt"),
@@ -531,9 +532,13 @@ public class DataServiceBrokerCode {
     //property 결과
     @JsonProperty("value")
     VALUE("value"),
+    @JsonProperty("value")
+    VALUES("values"),
     //relationship 결과
     @JsonProperty("object")
-    OBJECT("object");
+    OBJECT("object"),
+    @JsonProperty("objects")
+    OBJECTS("objects");
 
     private String code;
 

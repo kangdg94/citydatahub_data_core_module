@@ -113,30 +113,12 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
 
         for (Attribute rootAttribute : rootAttributes) {
 
-        	String currentEntityFullUri = contextMap.get(rootAttribute.getName());
-
-        	if(ValidateUtil.isEmptyData(currentEntityFullUri)) {
-        		throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER,
-                        "Invalid Request Content. Not exists attribute in @context. attribute name=" + rootAttribute.getName());
-        	}
-
-        	if (!currentEntityFullUri.equals(rootAttribute.getAttributeUri())) {
-        		throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER,
-                        "Invalid Request Content. No match attribute full uri. attribute name=" + rootAttribute.getName()
-                        + ", dataModel attribute uri=" + rootAttribute.getAttributeUri() + " but ingest attribute uri=" + currentEntityFullUri);
-            }
-
-        	String attributeKey = null;
-            // short name 으로 조회
-            if (currentEntityVO.containsKey(rootAttribute.getName())) {
-                attributeKey = rootAttribute.getName();
-            } else {
-                // full uri로 조회
-                if (currentEntityVO.containsKey(rootAttribute.getAttributeUri())) {
-                    attributeKey = rootAttribute.getAttributeUri();
-                } else {
-                    continue;
-                }
+            // 1. get attribute key name
+            // request entity attribute 중에 dataModel에 속한 attribute Key 값 추출
+            //  - short name 일수도 있고, full uri 형태일 수도 있음 (request 로 인입된 값 그대로 추출)
+            String attributeKey = getAttributeKey(currentEntityVO, rootAttribute, contextMap);
+            if (attributeKey == null) {
+                continue;
             }
 
             List<String> currentHierarchyIds = new ArrayList<>();
@@ -145,20 +127,11 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
             }
             currentHierarchyIds.add(rootAttribute.getName());
 
-            // 1. get attribute 
-            Map<String, Object> attribute = null;
-            Object attributeValue = null;
-            try {
-            	attributeValue = currentEntityVO.get(attributeKey);
-                attribute = (Map<String, Object>) attributeValue;
-            } catch (ClassCastException e) {
-                throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER,
-                        "Invalid Request Content. attributeId=" + rootAttribute.getName() +
-                                ", valueType=" + rootAttribute.getValueType().getCode() + ", value=" + currentEntityVO.get(rootAttribute.getName()));
-            }
+            // 2. get attribute data
+            Map<String, Object> attribute = getAttributeData(currentEntityVO, rootAttribute, attributeKey);
 
-            // 2. 필수값 체크
-            checkDefaultParam(attribute, rootAttribute.getName());
+            // 3. check mandatory field
+            checkDefaultParam(attribute, attributeKey);
 
             // 3-1. type이 Property인 경우
             if (AttributeType.PROPERTY == rootAttribute.getAttributeType()) {
@@ -237,9 +210,27 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
                                     ", valueType=" + AttributeValueType.GEO_JSON.getCode() + ", value=" + value);
                 }
             } else if (AttributeType.RELATIONSHIP == rootAttribute.getAttributeType()) {
-                Object object = attribute.get(PropertyKey.OBJECT.getCode());
+                if (rootAttribute.getValueType() == AttributeValueType.ARRAY_STRING
+                        && attribute.containsKey(PropertyKey.OBJECT.getCode())) {
+                    throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER,
+                            "Invalid Request Content. only allow objects. attribute=" + rootAttribute.getName());
+                }
+
+                if (rootAttribute.getValueType() == AttributeValueType.STRING
+                        && attribute.containsKey(PropertyKey.OBJECTS.getCode())) {
+                    throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER,
+                            "Invalid Request Content. only allow object. attribute=" + rootAttribute.getName());
+                }
+
+                PropertyKey propertyKey = PropertyKey.OBJECT;
+                if (rootAttribute.getValueType() == AttributeValueType.ARRAY_STRING) {
+                    propertyKey = PropertyKey.OBJECTS;
+                }
+
+                Object object = attribute.get(propertyKey.getCode());
+
                 // 세부 파라미터 유효성 체크
-                checkObjectType(rootAttribute.getName(), AttributeValueType.STRING, object, rootAttribute);
+                checkObjectType(rootAttribute.getName(), rootAttribute.getValueType(), object, rootAttribute);
             }
 
             // 3-3. ObservedAt 을 포함한 Attribute 인 경우
@@ -270,6 +261,41 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
         }
     }
 
+    private Map<String, Object> getAttributeData(Map<String, Object> currentEntityVO, Attribute rootAttribute, String attributeKey) {
+        Map<String, Object> attribute = null;
+        Object attributeValue = null;
+        try {
+            attributeValue = currentEntityVO.get(attributeKey);
+            attribute = (Map<String, Object>) attributeValue;
+        } catch (ClassCastException e) {
+            throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER,
+                    "Invalid Request Content. attributeId=" + rootAttribute.getName() +
+                            ", valueType=" + rootAttribute.getValueType().getCode() + ", value=" + attributeValue);
+        }
+        return attribute;
+    }
+
+    private String getAttributeKey(Map<String, Object> currentEntityVO, Attribute rootAttribute, Map<String, String> contextMap) {
+
+        String attributeKey = null;
+        // short name 으로 조회
+        if (currentEntityVO.containsKey(rootAttribute.getName())) {
+            attributeKey = rootAttribute.getName();
+            // request attribute 와 model의 attribute full uri 가 다른 경우
+            if (!rootAttribute.getAttributeUri().equals(contextMap.get(attributeKey))) {
+                throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER,
+                        "Invalid Request Content. No match attribute full uri. attribute name=" + rootAttribute.getName()
+                                + ", dataModel attribute uri=" + rootAttribute.getAttributeUri() + " but ingest attribute uri=" + contextMap.get(attributeKey));
+            }
+        } else {
+            // full uri로 조회
+            if (currentEntityVO.containsKey(rootAttribute.getAttributeUri())) {
+                attributeKey = rootAttribute.getAttributeUri();
+            }
+        }
+        return attributeKey;
+    }
+
     private void checkDefaultParam(Map<String, Object> attribute, String attributeId) throws BadRequestException {
         if (attribute == null) {
             throw new BadRequestException(ErrorCode.VERIFICATION_NOT_EXIST_MANDATORY_PARAMETER,
@@ -292,9 +318,10 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
                         "Not found Property value. attributeId=" + attributeId);
             }
         } else if (attribute.get(PropertyKey.TYPE.getCode()) == AttributeType.RELATIONSHIP) {
-            if (attribute.get(PropertyKey.OBJECT.getCode()) == null) {
+            if (attribute.get(PropertyKey.OBJECT.getCode()) == null
+                    && attribute.get(PropertyKey.OBJECTS.getCode()) == null) {
                 throw new BadRequestException(ErrorCode.VERIFICATION_NOT_EXIST_MANDATORY_PARAMETER,
-                        "Not found Relationship object. attributeId=" + attributeId);
+                        "Not found Relationship object and objects. attributeId=" + attributeId);
             }
         }
 
@@ -630,7 +657,7 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
             Attribute attribute = findAttribute(rootAttributes, entry.getKey());
             if (attribute == null) {
                 // rootAttribute 체크
-                throw new BadRequestException(ErrorCode.VERIFICATION_NOT_EXIST_MANDATORY_PARAMETER, "Not found key : " + key);
+                throw new BadRequestException(ErrorCode.VERIFICATION_INVALID_PARAMETER, "invalid key : " + key);
             }
             isExistAttribute(entry, attribute);
         }
@@ -687,8 +714,9 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
         } else if (type.equalsIgnoreCase(AttributeType.RELATIONSHIP.getCode())) {
             // RELATIONSHIP 형 item 체크
             Object objectItem = attrValue.get(PropertyKey.OBJECT.getCode());
-            if (objectItem == null) {
-                throw new BadRequestException(ErrorCode.VERIFICATION_NOT_EXIST_MANDATORY_PARAMETER, "Not found object : " + entry.getKey());
+            Object objectsItem = attrValue.get(PropertyKey.OBJECTS.getCode());
+            if (objectItem == null && objectsItem == null) {
+                throw new BadRequestException(ErrorCode.VERIFICATION_NOT_EXIST_MANDATORY_PARAMETER, "Not found object and objects. attribute= " + entry.getKey());
             }
             //동일 레벨 attribute 체크
             checkInnerAttribute(attrKey, attrValue, attribute);
@@ -772,6 +800,7 @@ public class IngestInterfaceSVC extends IngestProcessor<DynamicEntityFullVO> {
                 String relationshipMapKey = relationshipMap.getKey();
                 if (relationshipMapKey.equals(PropertyKey.TYPE.getCode())
                 		|| relationshipMapKey.equals(PropertyKey.OBJECT.getCode())
+                		|| relationshipMapKey.equals(PropertyKey.OBJECTS.getCode())
                 		|| relationshipMapKey.equals(PropertyKey.OBSERVED_AT.getCode())) {
                     continue;
                 }

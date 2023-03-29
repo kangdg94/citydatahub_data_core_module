@@ -457,7 +457,7 @@ public class RdbTableSqlProvider {
 			String columnName = getColumnNameByStorageMetadata(hierarchyAttrNames, null, storageMetadataVO);
 			Boolean isRequired = rootAttribute.getIsRequired();
 			if(ignoreRequired) isRequired = false;
-			addColumnDdl(sql, columnName, AttributeValueType.STRING, rootAttribute.getMaxLength(), isRequired, false, dbOperation);
+			addColumnDdl(sql, columnName, rootAttribute.getValueType(), rootAttribute.getMaxLength(), isRequired, false, dbOperation);
 		}
 
 		// 4. observed=true 인 경우 observed_at 컬럼 sql 생성

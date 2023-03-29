@@ -150,8 +150,6 @@ public class DataModelController {
 
         log.info("Datamodels CREATE request msg='{}'", requestBody);
 
-        //TODO CREATOR_ID 정보 입력 필요
-
         // 1. 파라미터 파싱 및 유효성 검사
         DataModelVO dataModelVO = objectMapper.readValue(requestBody, DataModelVO.class);
         
@@ -210,6 +208,7 @@ public class DataModelController {
         dataModelBaseVO.setName(dataModelVO.getName());
         dataModelBaseVO.setDescription(dataModelVO.getDescription());
         dataModelBaseVO.setEnabled(true);
+        dataModelBaseVO.setCreatorId(dataModelVO.getCreatorId());
         try {
         	dataModelBaseVO.setDataModel(objectMapper.writeValueAsString(dataModelVO));
 		} catch (IOException e) {
@@ -528,7 +527,10 @@ public class DataModelController {
 
             } else if (attributeType.equals(DataManagerCode.AttributeType.RELATIONSHIP)) {
 
-                if (attributeValueType != null && attributeValueType.equals(DataManagerCode.AttributeValueType.STRING)) {
+                if (attributeValueType != null
+                        && (attributeValueType.equals(DataManagerCode.AttributeValueType.STRING)
+                            || attributeValueType.equals(DataManagerCode.AttributeValueType.ARRAY_STRING))
+                ) {
                     continue;
                 }
             } else if (attributeValueType != null && attributeType.equals(DataManagerCode.AttributeType.GEO_PROPERTY)) {
@@ -619,6 +621,7 @@ public class DataModelController {
         dataModelBaseVO.setDescription(requestDataModelVO.getDescription());
         dataModelBaseVO.setEnabled(true);
         dataModelBaseVO.setDataModel(objectMapper.writeValueAsString(requestDataModelVO));
+        dataModelBaseVO.setModifierId(requestDataModelVO.getModifierId());
 
         return dataModelBaseVO;
     }

@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ import kr.re.keti.sc.datacoreui.api.dataset.vo.DataSetVO;
 import kr.re.keti.sc.datacoreui.api.datasetflow.vo.DataSetIdVO;
 import kr.re.keti.sc.datacoreui.common.code.Constants;
 import kr.re.keti.sc.datacoreui.common.service.DataCoreRestSVC;
+import kr.re.keti.sc.datacoreui.security.service.DataCoreUiSVC;
 import kr.re.keti.sc.datacoreui.util.ValidateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +46,20 @@ public class DataSetSVC {
 	private final static String DEFAULT_PATH_URL = "datasets";
 	private final DataCoreRestSVC dataCoreRestSVC;
 
+	@Autowired
+	private DataCoreUiSVC dataCoreUiSVC;
+
 	/**
 	 * Create data set
 	 * @param dataSetVO		DataSetVO
 	 * @return				Result of data set creation.
 	 */
-	public <T> ResponseEntity<T> createDataSet(DataSetVO dataSetVO) {
+	public <T> ResponseEntity<T> createDataSet(DataSetVO dataSetVO, HttpServletRequest request) {
+		Object principal = dataCoreUiSVC.getPrincipal(request);
+		if (principal != null) {
+			dataSetVO.setCreatorId(principal.toString());
+		}
+
 		String dataSet = new Gson().toJson(dataSetVO);
 		
 		ResponseEntity<T> response = (ResponseEntity<T>) dataCoreRestSVC.post(datasetUrl, DEFAULT_PATH_URL, null, dataSet, null, Void.class);
@@ -61,8 +73,12 @@ public class DataSetSVC {
 	 * @param dataSetVO		DataSetVO
 	 * @return				Result of update data set.
 	 */
-	public <T> ResponseEntity<T> updateDataSet(String id, DataSetVO dataSetVO) {
+	public <T> ResponseEntity<T> updateDataSet(String id, DataSetVO dataSetVO, HttpServletRequest request) {
 		String pathUri = DEFAULT_PATH_URL + "/" + id;
+		Object principal = dataCoreUiSVC.getPrincipal(request);
+		if (principal != null) {
+			dataSetVO.setModifierId(principal.toString());
+		}
 		String dataSet = new Gson().toJson(dataSetVO);
 		
 		ResponseEntity<T> response = (ResponseEntity<T>) dataCoreRestSVC.put(datasetUrl, pathUri, null, dataSet, null, Void.class);

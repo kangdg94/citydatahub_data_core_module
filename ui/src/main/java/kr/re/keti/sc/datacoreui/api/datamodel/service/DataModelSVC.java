@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -39,6 +41,7 @@ import kr.re.keti.sc.datacoreui.common.exception.BadRequestException;
 import kr.re.keti.sc.datacoreui.common.exception.DataCoreUIException;
 import kr.re.keti.sc.datacoreui.common.service.DataCoreRestSVC;
 import kr.re.keti.sc.datacoreui.common.vo.ClientExceptionPayloadVO;
+import kr.re.keti.sc.datacoreui.security.service.DataCoreUiSVC;
 import kr.re.keti.sc.datacoreui.util.AttributeCompareUtil;
 import kr.re.keti.sc.datacoreui.util.ObjectMemberCompareUtil;
 import kr.re.keti.sc.datacoreui.util.ValidateUtil;
@@ -70,6 +73,9 @@ public class DataModelSVC {
 	
 	@Autowired
 	private DataSetFlowSVC dataSetFlowSVC;
+
+	@Autowired
+	private DataCoreUiSVC dataCoreUiSVC;
 	
 	private final static String DEFAULT_PATH_URL = "datamodels";
 	private final DataCoreRestSVC dataCoreRestSVC;
@@ -92,7 +98,11 @@ public class DataModelSVC {
 	 * @param dataModelVO	DataModelVO
 	 * @return				Result of data model creation.
 	 */
-	public <T> ResponseEntity<T> createDataModel(DataModelVO dataModelVO) {
+	public <T> ResponseEntity<T> createDataModel(HttpServletRequest request, DataModelVO dataModelVO) {
+		Object principal = dataCoreUiSVC.getPrincipal(request);
+		if(principal != null) {
+			dataModelVO.setCreatorId(principal.toString());
+		}
 		String dataModel = new Gson().toJson(dataModelVO);
 		ResponseEntity<T> response = (ResponseEntity<T>) dataCoreRestSVC.post(datamodelUrl, DEFAULT_PATH_URL, null, dataModel, null, Void.class);
 		
@@ -104,9 +114,13 @@ public class DataModelSVC {
 	 * @param dataModelVO	DataModelVO
 	 * @return				Result of update data model.
 	 */
-	public <T> ResponseEntity<T> updateDataModel(DataModelVO dataModelVO) {
+	public <T> ResponseEntity<T> updateDataModel(HttpServletRequest request,DataModelVO dataModelVO) {
 		// Data model cannot be modified when data flow is created
 		// 1. Retrieve Dataset
+		Object principal = dataCoreUiSVC.getPrincipal(request);
+		if(principal != null) {
+			dataModelVO.setModifierId(principal.toString());
+		}
 		DataSetRetrieveVO dataSetRetrieveVO = new DataSetRetrieveVO();
 		dataSetRetrieveVO.setDataModelId(dataModelVO.getId());
 		ResponseEntity<DataSetListResponseVO> dataSetListResponseVO = dataSetSVC.getDataSets(dataSetRetrieveVO);

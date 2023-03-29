@@ -1,6 +1,7 @@
 package kr.re.keti.sc.ingestinterface.ingest.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import kr.re.keti.sc.ingestinterface.datamodel.DataModelManager;
 import kr.re.keti.sc.ingestinterface.datamodel.vo.DataModelCacheVO;
 import kr.re.keti.sc.ingestinterface.dataset.vo.DatasetBaseVO;
 import kr.re.keti.sc.ingestinterface.util.ValidateUtil;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Ingest 공통 서비스 클래스
@@ -27,6 +29,8 @@ public abstract class IngestProcessor<T extends CommonEntityFullVO> implements I
 
     @Autowired
     protected DataModelManager dataModelManager;
+    @Value("${entity.default.context-uri}")
+    protected String defaultContextUri;
 
     /**
      * Entity 데이터 Operation 별 벌크 처리
@@ -111,6 +115,9 @@ public abstract class IngestProcessor<T extends CommonEntityFullVO> implements I
                 	entityFullVO.setType(dataModelCacheVO.getType());
                 }
 
+                // @context가 존재하지 않을 경우 default context 사용
+                setDefaultContextIfEmpty(entityFullVO);
+
                 entityProcessVO.setEntityType(entityFullVO.getType());
                 entityProcessVO.setEntityFullVO(entityFullVO);
                 entityProcessVO.setDataModelCacheVO(dataModelCacheVO);
@@ -142,6 +149,12 @@ public abstract class IngestProcessor<T extends CommonEntityFullVO> implements I
         }
 
         return entityProcessVOList;
+    }
+
+    private void setDefaultContextIfEmpty(T entityFullVO) {
+        if(ValidateUtil.isEmptyData(entityFullVO.getContext())) {
+            entityFullVO.setContext(Arrays.asList(defaultContextUri));
+        }
     }
 
     private void verification(List<EntityProcessVO<T>> entityProcessVOList, IngestInterfaceCode.Operation operation) {

@@ -34,4 +34,7 @@ public class DataModelVO {
 	private List<String> indexAttributeNames;
 	/** Entity Attribute */
 	private List<AttributeVO> attributes;
+
+	private String creatorId;
+	private String modifierId;
 }

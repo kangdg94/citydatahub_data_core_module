@@ -245,10 +245,10 @@
             ,DATAMODEL_ID = #{dataModelId}
             ,ENABLED = #{enabled}
             <if test="creatorId != null">
-            ,#{creatorId}
+            ,CREATOR_ID = #{creatorId}
             </if>
             <if test="modifierId != null">
-            ,#{modifierId}
+            ,MODIFIER_ID = #{modifierId}
             </if>
             ,STORAGE_RETENTION = #{storageRetention}
             ,TOPIC_RETENTION = #{topicRetention}

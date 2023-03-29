@@ -95,6 +95,8 @@ public class EntityController {
     protected BigDataStorageType defaultStorageType;
     @Value("${entity.retrieve.primary.accept:application/json}")
     private String primaryAccept;
+    @Value("${entity.default.context-uri}")
+    private String defaultContextUri;
 
     /**
      * 최종 값 건수 조회
@@ -121,7 +123,7 @@ public class EntityController {
         }
 
         List<String> links = HttpHeadersUtil.extractLinkUris(link);
-        queryVO.setLinks(links);
+        queryVO.setLinks(getLinkOrDefault(links));
 
         accept = HttpHeadersUtil.getPrimaryAccept(accept);
 
@@ -170,7 +172,7 @@ public class EntityController {
         }
 
         List<String> links = HttpHeadersUtil.extractLinkUris(link);
-        queryVO.setLinks(links);
+        queryVO.setLinks(getLinkOrDefault(links));
 
         accept = HttpHeadersUtil.getPrimaryAccept(accept);
 
@@ -187,7 +189,7 @@ public class EntityController {
         // 4. 응답
         BigDataStorageType dataStorageType = getDataStorageType(queryVO.getDataStorageType());
         HttpHeadersUtil.addPaginationLinkHeader(dataStorageType, request, response, accept, queryVO.getLimit(), queryVO.getOffset(), entityRetrieveVO.getTotalCount(), defaultLimit);
-        HttpHeadersUtil.addContextLinkHeader(response, accept, queryVO.getContext());
+        HttpHeadersUtil.addContextLinkHeader(response, accept, getLinkHeaderByAccept(accept, links));
         response.getWriter().print(jsonResult);
     }
 
@@ -220,7 +222,7 @@ public class EntityController {
         }
 
         List<String> links = HttpHeadersUtil.extractLinkUris(link);
-        queryVO.setLinks(links);
+        queryVO.setLinks(getLinkOrDefault(links));
 
         accept = HttpHeadersUtil.getPrimaryAccept(accept);
 
@@ -235,7 +237,7 @@ public class EntityController {
         }
 
         // 4. 응답
-        HttpHeadersUtil.addContextLinkHeader(response, accept, queryVO.getContext());
+        HttpHeadersUtil.addContextLinkHeader(response, accept, getLinkHeaderByAccept(accept, links));
         response.getWriter().print(jsonResult);
     }
 
@@ -1662,4 +1664,24 @@ public class EntityController {
             dataModelManager.contextToFlatMap(links);
         }
     }
+
+    private List<String> getLinkHeaderByAccept(String accept, List<String> link) {
+
+        if (Constants.APPLICATION_LD_JSON_VALUE.equals(accept)) {
+            return null;
+        }
+
+        if (!ValidateUtil.isEmptyData(link)) {
+            return link;
+        }
+        return Collections.singletonList(defaultContextUri);
+    }
+
+    private List<String> getLinkOrDefault(List<String> link) {
+        if (!ValidateUtil.isEmptyData(link)) {
+            return link;
+        }
+        return Collections.singletonList(defaultContextUri);
+    }
+
 }

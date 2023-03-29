@@ -86,7 +86,7 @@ public class DataModelController {
 		}
 		
 		// 2. Create Data Model
-		ResponseEntity<T> reslt = (ResponseEntity<T>) dataModelSVC.createDataModel(dataModel);
+		ResponseEntity<T> reslt = (ResponseEntity<T>) dataModelSVC.createDataModel(request, dataModel);
 		
 		return reslt;
 	}
@@ -104,7 +104,7 @@ public class DataModelController {
 		log.info("[UI API] updateDataModel - dataModel: {}", dataModel);
 		
 		// 1. Update DataModel
-		ResponseEntity<T> reslt = (ResponseEntity<T>) dataModelSVC.updateDataModel(dataModel);
+		ResponseEntity<T> reslt = (ResponseEntity<T>) dataModelSVC.updateDataModel(request, dataModel);
 		
 		return reslt;
 	}

@@ -1,9 +1,8 @@
 package kr.re.keti.sc.dataservicebroker.subscription.vo;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -149,13 +148,89 @@ public class SubscriptionVO implements TermExpandable {
         }
     }
 
-	@Override
-	public void expandTerm(Map <String, String> contextMap) {
-		//TODO: apply contextMap
-		if (entities != null && contextMap == null) {
-			for (EntityInfo entityInfo : entities) {
-				entityInfo.setType(entityInfo.getTypeUri());
-			}
-		}
-	}
+    @Override
+    public void expandTerm(Map<String, String> dataModelContextMap) {
+        expandTerm(null, dataModelContextMap);
+    }
+
+    @Override
+    public void expandTerm(Map<String, String> requestContextMap, Map<String, String> dataModelContextMap) {
+
+        if (requestContextMap == null) requestContextMap = new HashMap<>();
+
+        expandKey(requestContextMap, dataModelContextMap);
+        expandValue(requestContextMap, dataModelContextMap);
+    }
+
+    private void expandKey(Map<String, String> requestContextMap, Map<String, String> dataModelContextMap) {
+        watchedAttributes = expandAttributes(watchedAttributes, requestContextMap, dataModelContextMap);
+
+        if (notification != null) {
+            notification.setAttributes(
+                    expandAttributes(
+                            notification.getAttributes(),
+                            requestContextMap,
+                            dataModelContextMap
+                    )
+            );
+        }
+    }
+
+    private void expandValue(Map<String, String> requestContextMap, Map<String, String> dataModelContextMap) {
+        if (ValidateUtil.isEmptyData(entities)) {
+            return;
+        }
+
+        for (EntityInfo entityInfo : entities) {
+            if (isExpansionTarget(
+                    requestContextMap == null ? null : requestContextMap.get(entityInfo.getType()),
+                    entityInfo.getTypeUri())
+            ) {
+                entityInfo.setType(entityInfo.getTypeUri());
+            }
+        }
+    }
+
+    private List<String> expandAttributes(
+            List<String> attributes,
+            Map<String, String> requestContextMap,
+            Map<String, String> dataModelContextMap
+    ) {
+
+        if (ValidateUtil.isEmptyData(attributes)) {
+            return attributes;
+        }
+
+        List<String> expandedAttributes = new ArrayList<>();
+        for (String attributeName : attributes) {
+            String fullUriByRequest = requestContextMap.get(attributeName);
+            String fullUriByDataModel = dataModelContextMap.get(attributeName);
+            if (isFullUri(attributeName)
+                || !isExpansionTarget(fullUriByRequest, fullUriByDataModel)) {
+                expandedAttributes.add(attributeName);
+            } else{
+                expandedAttributes.add(fullUriByDataModel);
+            }
+        }
+        return expandedAttributes;
+    }
+
+    private boolean isExpansionTarget(String fullUriByRequest, String fullUriByDataModel) {
+
+        // 요청 context 기반으로 full uri 파싱이 불가능한 경우
+        if (ValidateUtil.isEmptyData(fullUriByRequest)) {
+            return true;
+
+        // 요청 context 기반으로 full uri 파싱은 가능하지만, dataModel의 full url와 다른 경우
+        } else if (!ValidateUtil.isEmptyData(fullUriByRequest)
+                && !ValidateUtil.isEmptyData(fullUriByDataModel)
+                && !fullUriByRequest.equals(fullUriByDataModel)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isFullUri(String attributeName) {
+        return attributeName == null ? false : attributeName.startsWith("http");
+    }
 }

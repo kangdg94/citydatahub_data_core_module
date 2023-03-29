@@ -66,7 +66,9 @@ public class QueryUtil {
                 	}
                 }
 
-                queryResultList.add(String.join(" OR ", orQueryList));
+                if (!ValidateUtil.isEmptyData(orQueryList)) {
+                    queryResultList.add(String.join(" OR ", orQueryList));
+                }
             }
         } catch (BaseException e) {
             throw e;
@@ -212,7 +214,7 @@ public class QueryUtil {
         
         // full uri를 short 으로 변환하지 못함 (모델에 포함된 attribute 가 아님)
         if (q_query.startsWith("http")) {
-        	return null;
+            throw new NgsiLdBadRequestException(ErrorCode.REQUEST_MESSAGE_PARSING_ERROR, "invalid q-query params. attrName=" + q_query);
         }
 
         String qOperator = null;
