@@ -32,8 +32,8 @@ public enum FetchType {
     this.tFetchType = tFetchType;
   }
 
-  public static org.apache.hive.service.cli.FetchType getFetchType(short tFetchType) {
-    for (org.apache.hive.service.cli.FetchType fetchType : values()) {
+  public static FetchType getFetchType(short tFetchType) {
+    for (FetchType fetchType : values()) {
       if (tFetchType == fetchType.toTFetchType()) {
         return fetchType;
       }

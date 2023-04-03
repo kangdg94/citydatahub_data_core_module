@@ -17,7 +17,7 @@
 
 package org.apache.spark.sql.hive.thriftserver
 
-import org.apache.hadoop.hive.conf.HiveConf
+import io.dtonic.geohiker.datastore.query.SparkQuerySupport
 
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.security.PrivilegedExceptionAction
@@ -31,16 +31,16 @@ import org.apache.hive.service.cli.operation.ExecuteStatementOperation
 import org.apache.hive.service.cli.session.HiveSession
 import org.apache.spark.SparkContext
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.catalyst.parser.{AstBuilder, SqlBaseParser}
 import org.apache.spark.sql.execution.HiveResult
 import org.apache.spark.sql.execution.command.SetCommand
 import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.sql.internal.{SQLConf, SharedState}
+import org.apache.spark.sql.internal.SQLConf
+import org.apache.spark.sql.sedona_sql.UDT.GeometryUDT
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, GeometryUDT, Row => SparkRow}
+import org.apache.spark.sql.udf.GeoHikerUDFRegistrator
+import org.apache.spark.sql.{DataFrame, GeohikerSqlSupport, SQLContext, Row => SparkRow}
 import org.apache.spark.util.{Utils => SparkUtils}
-import org.apache.spark.sql.GeohikerSqlSupport
-import org.apache.spark.sql.SQLGeometryAnalysisFunctions
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -53,13 +53,13 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
     statement: String,
     confOverlay: JMap[String, String],
     runInBackground: Boolean = true)
-    (hiveContext: HiveContext, sessionToActivePool: JMap[SessionHandle, String])
+    (sqlContext: SQLContext, sessionToActivePool: JMap[SessionHandle, String])
   extends ExecuteStatementOperation(parentSession, statement, confOverlay, runInBackground)
   with Logging {
 
-  import hiveContext.sparkSession.implicits._
+  import sqlContext.sparkSession.implicits._
 
-  GeohikerSqlSupport.init(hiveContext)
+  GeohikerSqlSupport.init(sqlContext)
 
   private var result: DataFrame = _
 
@@ -85,7 +85,7 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
     // RDDs will be cleaned automatically upon garbage collection.
     logDebug(s"CLOSING $statementId")
     cleanup(OperationState.CLOSED)
-    hiveContext.sparkContext.clearJobGroup()
+    sqlContext.sparkContext.clearJobGroup()
     GeohikerThriftServer.listener.onOperationClosed(statementId)
   }
 
@@ -130,7 +130,7 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
 
     // Reset iter to header when fetching start from first row
     if (order.equals(FetchOrientation.FETCH_FIRST)) {
-      iter = if (hiveContext.getConf(SQLConf.THRIFTSERVER_INCREMENTAL_COLLECT.key).toBoolean) {
+      iter = if (sqlContext.getConf(SQLConf.THRIFTSERVER_INCREMENTAL_COLLECT.key).toBoolean) {
         resultList = None
         result.toLocalIterator.asScala
       } else {
@@ -224,47 +224,145 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
   }
 
   private def execute(): Unit = withSchedulerPool {
+    var realQuery: String = ""
+    var needFakeStatement: Boolean = false
+
+    var needHiveParser: Boolean = false
+
     statementId = UUID.randomUUID().toString
     logInfo(s"Running query '$statement' with $statementId")
 
+    needHiveParser = if(statement.toUpperCase().contains("STORED -BY-")) {
+      realQuery = statement
+        .drop(8)
+        .dropRight(1)
+        .replaceAll("(?i)stored -by-", "STORED BY")
+
+      true
+
+    } else if (statement.toUpperCase().contains("-REPLACE- COLUMNS")) {
+      realQuery = statement
+        .drop(8)
+        .dropRight(1)
+        .replaceAll("(?i)-replace- columns", "REPLACE COLUMNS")
+
+      true
+
+    } else if(statement.toUpperCase().contains(" -CHANGE- ")) {
+      realQuery = statement
+        .drop(8)
+        .dropRight(1)
+        .replaceAll("(?i) -change-", "CHANGE")
+
+      true
+
+    } else {
+      realQuery = statement
+      false
+    }
+
+    val out = new SparkQuerySupport(sqlContext.sparkSession,realQuery).doPreProcess()
+    realQuery = out.returnSQL
+    needFakeStatement = true
+
+    needHiveParser = false
+
+    logInfo(
+      s"""
+        |!!!! Dtonic test point 4 !!!!
+        |query: $realQuery
+        |
+        |needFakeStatement: $needFakeStatement
+        |
+        |needHiveParser: $needHiveParser
+        |""".stripMargin)
+
+    setState(OperationState.RUNNING)
+    // Always use the latest class loader provided by executionHive's state.
+    val executionHiveClassLoader = sqlContext.sharedState.jarClassLoader
+    Thread.currentThread().setContextClassLoader(executionHiveClassLoader)
+
+
+    val inputStatement = if(needFakeStatement) {
+      "show tables;"
+    } else {
+      statement
+    }
+
+    GeohikerThriftServer.listener.onStatementStart(
+      statementId,
+      parentSession.getSessionHandle.getSessionId.toString,
+      inputStatement,
+      statementId,
+      parentSession.getUsername)
+
+    sqlContext.sparkContext.setJobGroup(statementId, inputStatement)
     try {
+      logInfo(inputStatement)
 
-      logInfo(
-        s"""
-          |!!!! Dtonic test point 4 !!!!
-          |query: $statement
-          |""".stripMargin)
+      logInfo(realQuery)
 
-      setState(OperationState.RUNNING)
+      if(needHiveParser) {
+        // "Stored By" is not supported by spark, so it runs in hive
+        val file = new File("query")
 
-      // Always use the latest class loader provided by executionHive's state.
-      val executionHiveClassLoader = hiveContext.sharedState.jarClassLoader
-      Thread.currentThread().setContextClassLoader(executionHiveClassLoader)
-
-      GeohikerThriftServer.listener.onStatementStart(
-        statementId,
-        parentSession.getSessionHandle.getSessionId.toString,
-        statement,
-        statementId,
-        parentSession.getUsername)
-
-      hiveContext.sparkContext.setJobGroup(statementId, statement)
-
-      logInfo(statement)
-
-      val tmp = hiveContext.sql(statement)
-
-      result = tmp.select(tmp.schema.fields.map{ c =>
-        c.dataType match {
-          case _: ArrayType =>
-            col(c.name).cast(StringType)
-          case _: GeometryUDT =>
-            SQLGeometryAnalysisFunctions.ST_ASJTSWKT(col(c.name))
-          case _ =>
-            col(c.name)
+        try { // save statement as file
+          val writer = new BufferedWriter(new FileWriter(file,false))
+          writer.write(realQuery)
+          writer.close()
+        } catch {
+          case e: IOException =>
+            e.printStackTrace()
         }
-      }: _*)
 
+        val cmd = "hive -f query" !!
+
+        result = sqlContext.sparkContext.parallelize(Seq(cmd)).toDF("status")
+
+      } else if (statement.toUpperCase().startsWith("SHOW CREATE TABLE") ) {
+        val hiveExist = sys.env.exists {case (key, _) => key == "HIVE_HOME"}
+
+        if(hiveExist) {
+          val file = new File(sys.env("SPARK_HOME") + "/queries/show_create_table_query")
+
+          try { // save statement as file
+            val writer = new BufferedWriter(new FileWriter(file,false))
+            writer.write(realQuery)
+            writer.close()
+          } catch {
+            case e: IOException =>
+              e.printStackTrace()
+          }
+
+          import sys.process._
+
+          val returned = s"hive -f ${sys.env("SPARK_HOME")}/queries/show_create_table_query >> ${sys.env("SPARK_HOME")}/queries/show_create_table" !!
+
+          //        val resultSource = Source.fromFile(sys.env("SPARK_HOME") + "/queries/show_create_table")
+          //        val data = resultSource.mkString
+
+          result = sqlContext.sparkContext.parallelize(Seq(returned)).toDF("result")
+        } else {
+          result = sqlContext.sql(realQuery)
+        }
+
+
+//        resultSource.close()
+      } else {
+//        result = sqlContext.sparkContext.parallelize(Seq("done")).toDF("status")
+        val tmp = sqlContext.sql(realQuery)
+
+        result = tmp.select(tmp.schema.fields.map{ c =>
+          c.dataType match {
+            case _: ArrayType =>
+              col(c.name).cast(StringType)
+            case _: GeometryUDT =>
+              GeoHikerUDFRegistrator.geomToString(col(c.name))
+            case _ =>
+              col(c.name)
+          }
+        }: _*)
+      }
 
       logDebug(result.queryExecution.toString())
       result.queryExecution.logical match {
@@ -276,7 +374,7 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
       }
       GeohikerThriftServer.listener.onStatementParsed(statementId, result.queryExecution.toString())
       iter = {
-        if (hiveContext.getConf(SQLConf.THRIFTSERVER_INCREMENTAL_COLLECT.key).toBoolean) {
+        if (sqlContext.getConf(SQLConf.THRIFTSERVER_INCREMENTAL_COLLECT.key).toBoolean) {
           resultList = None
           result.toLocalIterator.asScala
         } else {
@@ -325,20 +423,20 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
       }
     }
     if (statementId != null) {
-      hiveContext.sparkContext.cancelJobGroup(statementId)
+      sqlContext.sparkContext.cancelJobGroup(statementId)
     }
   }
 
   private def withSchedulerPool[T](body: => T): T = {
     val pool = sessionToActivePool.get(parentSession.getSessionHandle)
     if (pool != null) {
-      hiveContext.sparkContext.setLocalProperty(SparkContext.SPARK_SCHEDULER_POOL, pool)
+      sqlContext.sparkContext.setLocalProperty(SparkContext.SPARK_SCHEDULER_POOL, pool)
     }
     try {
       body
     } finally {
       if (pool != null) {
-        hiveContext.sparkContext.setLocalProperty(SparkContext.SPARK_SCHEDULER_POOL, null)
+        sqlContext.sparkContext.setLocalProperty(SparkContext.SPARK_SCHEDULER_POOL, null)
       }
     }
   }

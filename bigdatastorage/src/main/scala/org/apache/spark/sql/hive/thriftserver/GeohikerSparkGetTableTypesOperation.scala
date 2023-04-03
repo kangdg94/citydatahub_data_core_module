@@ -18,24 +18,23 @@
 package org.apache.spark.sql.hive.thriftserver
 
 import java.util.UUID
-
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType
 import org.apache.hive.service.cli._
 import org.apache.hive.service.cli.operation.GetTableTypesOperation
 import org.apache.hive.service.cli.session.HiveSession
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.catalyst.catalog.CatalogTableType
-import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.util.{Utils => SparkUtils}
 
 /**
  * Spark's own GetTableTypesOperation
  *
- * @param hiveContext HiveContext to use
+ * @param sqlContext SQLContext to use
  * @param parentSession a HiveSession from SessionManager
  */
 private[hive] class GeohikerSparkGetTableTypesOperation(
-    hiveContext: HiveContext,
+    sqlContext: SQLContext,
     parentSession: HiveSession)
   extends GetTableTypesOperation(parentSession) with GeohikerSparkMetadataOperationUtils with Logging {
 
@@ -52,7 +51,7 @@ private[hive] class GeohikerSparkGetTableTypesOperation(
     logInfo(s"$logMsg with $statementId")
     setState(OperationState.RUNNING)
     // Always use the latest class loader provided by executionHive's state.
-    val executionHiveClassLoader = hiveContext.sharedState.jarClassLoader
+    val executionHiveClassLoader = sqlContext.sharedState.jarClassLoader
     Thread.currentThread().setContextClassLoader(executionHiveClassLoader)
 
     if (isAuthV2Enabled) {

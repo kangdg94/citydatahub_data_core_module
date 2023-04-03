@@ -19,7 +19,6 @@ package org.apache.spark.sql.hive.thriftserver
 
 import java.util.UUID
 import java.util.regex.Pattern
-
 import scala.collection.JavaConverters.seqAsJavaListConverter
 import org.apache.hadoop.hive.ql.security.authorization.plugin.{HiveOperationType, HivePrivilegeObject}
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType
@@ -27,9 +26,9 @@ import org.apache.hive.service.cli._
 import org.apache.hive.service.cli.operation.GetColumnsOperation
 import org.apache.hive.service.cli.session.HiveSession
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.catalog.SessionCatalog
-import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.hive.thriftserver.ThriftserverShimUtils.toJavaSQLType
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.util.{Utils => SparkUtils}
@@ -37,7 +36,7 @@ import org.apache.spark.util.{Utils => SparkUtils}
 /**
  * Spark's own GeohikerSparkGetColumnsOperation
  *
- * @param hiveContext HiveContext to use
+ * @param sqlContext SQLContext to use
  * @param parentSession a HiveSession from SessionManager
  * @param catalogName catalog name. NULL if not applicable.
  * @param schemaName database name, NULL or a concrete database name
@@ -45,16 +44,16 @@ import org.apache.spark.util.{Utils => SparkUtils}
  * @param columnName column name
  */
 private[hive] class GeohikerSparkGetColumnsOperation(
-    hiveContext: HiveContext,
-    parentSession: HiveSession,
-    catalogName: String,
-    schemaName: String,
-    tableName: String,
-    columnName: String)
+                                                      sqlContext: SQLContext,
+                                                      parentSession: HiveSession,
+                                                      catalogName: String,
+                                                      schemaName: String,
+                                                      tableName: String,
+                                                      columnName: String)
   extends GetColumnsOperation(parentSession, catalogName, schemaName, tableName, columnName)
     with Logging {
 
-  val catalog: SessionCatalog = hiveContext.sessionState.catalog
+  val catalog: SessionCatalog = sqlContext.sessionState.catalog
 
   private var statementId: String = _
 
@@ -72,7 +71,7 @@ private[hive] class GeohikerSparkGetColumnsOperation(
 
     setState(OperationState.RUNNING)
     // Always use the latest class loader provided by executionHive's state.
-    val executionHiveClassLoader = hiveContext.sharedState.jarClassLoader
+    val executionHiveClassLoader = sqlContext.sharedState.jarClassLoader
     Thread.currentThread().setContextClassLoader(executionHiveClassLoader)
 
     GeohikerThriftServer.listener.onStatementStart(

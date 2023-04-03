@@ -19,7 +19,6 @@ package org.apache.spark.sql.hive.thriftserver
 
 import java.util.{UUID, List => JList}
 import java.util.regex.Pattern
-
 import scala.collection.JavaConverters._
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObjectUtils
@@ -27,15 +26,16 @@ import org.apache.hive.service.cli._
 import org.apache.hive.service.cli.operation.GetTablesOperation
 import org.apache.hive.service.cli.session.HiveSession
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.catalyst.catalog.CatalogTableType
 import org.apache.spark.sql.catalyst.catalog.CatalogTableType._
-import org.apache.spark.sql.hive.{HiveContext, HiveUtils}
+import org.apache.spark.sql.hive.HiveUtils
 import org.apache.spark.util.{Utils => SparkUtils}
 
 /**
  * Spark's own GetTablesOperation
  *
- * @param hiveContext HiveContext to use
+ * @param sqlContext SQLContext to use
  * @param parentSession a HiveSession from SessionManager
  * @param catalogName catalog name. null if not applicable
  * @param schemaName database name, null or a concrete database name
@@ -43,7 +43,7 @@ import org.apache.spark.util.{Utils => SparkUtils}
  * @param tableTypes list of allowed table types, e.g. "TABLE", "VIEW"
  */
 private[hive] class GeohikerSparkGetTablesOperation(
-    hiveContext: HiveContext,
+    sqlContext: SQLContext,
     parentSession: HiveSession,
     catalogName: String,
     schemaName: String,
@@ -68,10 +68,10 @@ private[hive] class GeohikerSparkGetTablesOperation(
     logInfo(s"$logMsg with $statementId")
     setState(OperationState.RUNNING)
     // Always use the latest class loader provided by executionHive's state.
-    val executionHiveClassLoader = hiveContext.sharedState.jarClassLoader
+    val executionHiveClassLoader = sqlContext.sharedState.jarClassLoader
     Thread.currentThread().setContextClassLoader(executionHiveClassLoader)
 
-    val catalog = hiveContext.sessionState.catalog
+    val catalog = sqlContext.sessionState.catalog
     val schemaPattern = convertSchemaPattern(schemaName)
     val tablePattern = convertIdentifierPattern(tableName, true)
     val matchingDbs = catalog.listDatabases(schemaPattern)
