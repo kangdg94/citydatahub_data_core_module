@@ -46,6 +46,8 @@ private[hive] object GeohikerSparkSQLEnv extends Logging {
       sparkConf
         .setAppName(maybeAppName.getOrElse(s"SparkSQL::${Utils.localHostName()}"))
         .set(CATALOG_IMPLEMENTATION.key, "hive")
+        .set("spark.sql.extensions", "io.dtonic.geohiker.spark.GeohikerSparkExtensions,io.delta.sql.DeltaSparkSessionExtension")
+        .set("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 
       val sc = SparkContext.getOrCreate(sparkConf)
 
@@ -61,8 +63,6 @@ private[hive] object GeohikerSparkSQLEnv extends Logging {
       metadataHive.setError(new PrintStream(System.err, true, UTF_8.name()))
       sparkSession.conf.set(HiveUtils.FAKE_HIVE_VERSION.key, HiveUtils.builtinHiveVersion)
     }
-
-    GeohikerSqlSupport.init(sqlContext)
   }
 
   /** Cleans up and shuts down the Spark SQL environments. */

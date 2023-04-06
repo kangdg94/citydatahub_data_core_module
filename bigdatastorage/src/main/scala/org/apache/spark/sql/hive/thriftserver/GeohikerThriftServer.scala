@@ -51,8 +51,6 @@ object GeohikerThriftServer extends Logging {
    */
   @DeveloperApi
   def startWithContext(sqlContext: SQLContext): Unit = {
-    GeohikerSqlSupport.init(sqlContext)
-
     val server = new GeohikerThriftServer(sqlContext)
 
     val executionHive = HiveUtils.newClientForExecution(

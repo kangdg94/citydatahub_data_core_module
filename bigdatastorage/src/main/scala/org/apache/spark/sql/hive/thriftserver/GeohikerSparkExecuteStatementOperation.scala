@@ -17,7 +17,7 @@
 
 package org.apache.spark.sql.hive.thriftserver
 
-import io.dtonic.geohiker.datastore.query.SparkQuerySupport
+//import io.dtonic.geohiker.datastore.query.SparkQuerySupport
 
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.security.PrivilegedExceptionAction
@@ -58,8 +58,6 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
   with Logging {
 
   import sqlContext.sparkSession.implicits._
-
-  GeohikerSqlSupport.init(sqlContext)
 
   private var result: DataFrame = _
 
@@ -261,8 +259,8 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
       false
     }
 
-    val out = new SparkQuerySupport(sqlContext.sparkSession,realQuery).doPreProcess()
-    realQuery = out.returnSQL
+//    val out = new SparkQuerySupport(sqlContext.sparkSession,realQuery).doPreProcess()
+//    realQuery = out.returnSQL
     needFakeStatement = true
 
     needHiveParser = false
