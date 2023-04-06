@@ -17,8 +17,6 @@
 
 package org.apache.spark.sql.hive.thriftserver
 
-//import io.dtonic.geohiker.datastore.query.SparkQuerySupport
-
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.security.PrivilegedExceptionAction
 import java.sql.{Date, Timestamp}
@@ -31,7 +29,6 @@ import org.apache.hive.service.cli.operation.ExecuteStatementOperation
 import org.apache.hive.service.cli.session.HiveSession
 import org.apache.spark.SparkContext
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.catalyst.parser.{AstBuilder, SqlBaseParser}
 import org.apache.spark.sql.execution.HiveResult
 import org.apache.spark.sql.execution.command.SetCommand
 import org.apache.spark.sql.functions.col
@@ -39,7 +36,7 @@ import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.sedona_sql.UDT.GeometryUDT
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.udf.GeoHikerUDFRegistrator
-import org.apache.spark.sql.{DataFrame, GeohikerSqlSupport, SQLContext, Row => SparkRow}
+import org.apache.spark.sql.{DataFrame, SQLContext, Row => SparkRow}
 import org.apache.spark.util.{Utils => SparkUtils}
 
 import scala.collection.JavaConverters._
@@ -259,8 +256,6 @@ private[hive] class GeohikerSparkExecuteStatementOperation(
       false
     }
 
-//    val out = new SparkQuerySupport(sqlContext.sparkSession,realQuery).doPreProcess()
-//    realQuery = out.returnSQL
     needFakeStatement = true
 
     needHiveParser = false

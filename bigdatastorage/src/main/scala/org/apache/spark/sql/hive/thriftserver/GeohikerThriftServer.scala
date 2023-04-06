@@ -30,7 +30,7 @@ import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.internal.config.UI.UI_ENABLED
 import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd, SparkListenerJobStart}
-import org.apache.spark.sql.{GeohikerSqlSupport, SQLContext}
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.HiveUtils
 import org.apache.spark.sql.hive.thriftserver.GeohikerReflectionUtils._
 import org.apache.spark.sql.hive.thriftserver.ui.GeohikerThriftServerTab

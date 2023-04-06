@@ -21,7 +21,7 @@ import java.io.PrintStream
 import java.nio.charset.StandardCharsets.UTF_8
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.{GeohikerSqlSupport, SQLContext, SparkSession}
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.hive.{HiveExternalCatalog, HiveUtils}
 import org.apache.spark.sql.internal.StaticSQLConf.CATALOG_IMPLEMENTATION
 import org.apache.spark.util.Utils
