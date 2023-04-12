@@ -63,10 +63,10 @@ dependencies {
     compile 'org.apache.sedona:sedona-sql-3.0_2.12:1.0.0-incubating'
     compile 'org.locationtech.jts:jts-core:1.18.0'
 
-    compile files('libs/geohiker-core-1.2.53.jar')
-    compile files('libs/geohiker-index-1.2.53.jar')
-    compile files('libs/geohiker-spark-1.2.53.jar')
-    compile files('libs/geohiker-datastore-1.2.53.jar')
+    compile files('libs/geohiker-core-1.2.55.jar')
+    compile files('libs/geohiker-index-1.2.55.jar')
+    compile files('libs/geohiker-spark-1.2.55.jar')
+    compile files('libs/geohiker-datastore-1.2.55.jar')
 
     compile (group: 'org.apache.hive', name: 'hive-hbase-handler', version: '2.3.7') {
         exclude group: 'org.apache.hive', module: 'hive-exec'
