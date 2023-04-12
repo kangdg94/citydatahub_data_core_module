@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -12,6 +13,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+
+import org.joda.time.DateTime;
 
 import kr.re.keti.sc.dataservicebroker.common.code.Constants;
 
@@ -26,7 +29,15 @@ public class DateUtil {
     		dateFormats.add(DateTimeFormatter.ofPattern(dateFormat));
     	}
     }
+    
+    private static final List<DateTimeFormatter> hiveDateFormats = new ArrayList<>();
 
+    static {
+    	for (String dateFormat : Constants.HIVE_MULTI_DATE_FORMATS) {
+    		hiveDateFormats.add(DateTimeFormatter.ofPattern(dateFormat));
+    	}
+    }    
+    
 //	public static String dateToDbFormatString(Date date, ZoneId zoneId) {
 //		ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC"));
 //		return zonedDateTime.format(dbDateFormatter);
@@ -71,6 +82,26 @@ public class DateUtil {
 		Date queryDate = strToDate(timeValue);
 		timeValue = "'" + postgresFormat.format(queryDate) + "'";
 		return timeValue;
+	}
+	
+	public static Date convertHiveTsToDate(String timestampStr) throws ParseException {
+		if(ValidateUtil.isEmptyData(timestampStr)) {
+			return null;
+		}
+		
+		for (DateTimeFormatter dateFormat : hiveDateFormats) {
+        	try {
+        		return Date.from(LocalDateTime.parse(timestampStr, dateFormat).toInstant(ZoneOffset.UTC));
+        		
+//        		return Date.from(Date.parse(timestampStr, dateFormat).toInstant());
+        	} catch(DateTimeParseException e) {
+        		
+        	} catch (Exception e) {
+        		
+        	}
+        }
+		throw new ParseException("Invalid Hive date format: " + timestampStr + ". Supported formats: " + Arrays.toString(Constants.HIVE_MULTI_DATE_FORMATS), 0);
+		
 	}
 
 
