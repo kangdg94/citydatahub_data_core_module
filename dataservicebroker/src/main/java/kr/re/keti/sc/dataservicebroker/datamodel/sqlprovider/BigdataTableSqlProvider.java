@@ -154,6 +154,8 @@ public class BigdataTableSqlProvider {
       .append(LINE_SEPARATOR)
       .append(COMMA_WITH_SPACE)
       .append("MODIFIED_AT TIMESTAMP")
+      .append(LINE_SEPARATOR)
+      .append(", OPERATION VARCHAR(40) NOT NULL ")
       .append(LINE_SEPARATOR);
 
     generateDynamicColumnSql(
@@ -205,6 +207,8 @@ public class BigdataTableSqlProvider {
       .append(LINE_SEPARATOR)
       .append(COMMA_WITH_SPACE)
       .append("MODIFIED_AT TIMESTAMP")
+      .append(LINE_SEPARATOR)
+      .append(", OPERATION VARCHAR(40) NOT NULL ")
       .append(LINE_SEPARATOR);
 
     generateDynamicColumnSql(

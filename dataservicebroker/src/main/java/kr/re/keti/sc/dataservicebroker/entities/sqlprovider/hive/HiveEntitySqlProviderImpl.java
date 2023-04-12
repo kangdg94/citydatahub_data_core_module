@@ -838,7 +838,7 @@ public class HiveEntitySqlProviderImpl {
 		// 테이블 설정
 		sql.append("INSERT OVERWRITE TABLE").append(SPACE);
 		sql.append(entityDaoVO.getDbTableName()).append(SPACE);
-		sql.append("PARTITION (ID)").append(SPACE);
+		// sql.append("PARTITION (ID)").append(SPACE);
 
 		// Update할 컬럼 설정
 		sql.append("SELECT").append(SPACE);
@@ -985,7 +985,7 @@ public class HiveEntitySqlProviderImpl {
 		// 테이블 설정
 		sql.append("INSERT OVERWRITE TABLE").append(SPACE);
 		sql.append(entityDaoVO.getDbTableName()).append(SPACE);
-		sql.append("PARTITION (ID)").append(SPACE);
+		// sql.append("PARTITION (ID)").append(SPACE);
 
 		// Update할 컬럼 설정
 		sql.append("SELECT").append(SPACE);
@@ -1228,7 +1228,7 @@ public class HiveEntitySqlProviderImpl {
 		// 테이블 설정
 		sql.append("INSERT OVERWRITE TABLE").append(SPACE);
 		sql.append(entityDaoVO.getDbTableName()).append(SPACE);
-		sql.append("PARTITION (ID)").append(SPACE);
+		// sql.append("PARTITION (ID)").append(SPACE);
 
 		// Update할 컬럼 설정
 		sql.append("SELECT").append(SPACE);
@@ -1382,17 +1382,14 @@ public class HiveEntitySqlProviderImpl {
 	 * @return 생성된 sql문
 	 */
 	public String deleteHist(CommonEntityDaoVO entityDaoVO) {
-		StringBuilder sql = new StringBuilder();
 		String tableName = StringUtil
-				.removeSpecialCharAndLower(entityDaoVO.getDbTableName() + Constants.PARTIAL_HIST_TABLE_PREFIX);
-
-		sql.append("ALTER TABLE").append(SPACE);
-		sql.append(tableName).append(SPACE);
-
-		sql.append("DROP PARTITION (ID = ");
-		sql.append("#{").append(DataServiceBrokerCode.DefaultAttributeKey.ID.getCode()).append("}");
-		sql.append(");");
-
+		 		.removeSpecialCharAndLower(entityDaoVO.getDbTableName() + Constants.PARTIAL_HIST_TABLE_PREFIX);
+		SQL sql = new SQL() {
+			{
+				DELETE_FROM(tableName);
+				WHERE("ID = #{" + DataServiceBrokerCode.DefaultAttributeKey.ID.getCode() + "}");
+			}
+		};
 		return sql.toString();
 	}
 
@@ -1403,16 +1400,14 @@ public class HiveEntitySqlProviderImpl {
 	 * @return 생성된 sql문
 	 */
 	public String deleteFullHist(CommonEntityDaoVO entityDaoVO) {
-		StringBuilder sql = new StringBuilder();
 		String tableName = StringUtil
 				.removeSpecialCharAndLower(entityDaoVO.getDbTableName() + Constants.FULL_HIST_TABLE_PREFIX);
-
-		sql.append("ALTER TABLE").append(SPACE);
-		sql.append(tableName).append(SPACE);
-
-		sql.append("DROP PARTITION (ID = ");
-		sql.append("#{").append(DataServiceBrokerCode.DefaultAttributeKey.ID.getCode()).append("}");
-		sql.append(");");
+		SQL sql = new SQL() {
+			{
+				DELETE_FROM(tableName);
+				WHERE("ID = #{" + DataServiceBrokerCode.DefaultAttributeKey.ID.getCode() + "}");
+			}
+		};
 
 		return sql.toString();
 	}
@@ -1491,7 +1486,7 @@ public class HiveEntitySqlProviderImpl {
 
 		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
 		if (dbColumnInfoVOMap != null) {
-			asBuilder.append("DATASET_ID, CREATED_AT, MODIFIED_AT");
+			asBuilder.append("DATASET_ID, CREATED_AT, MODIFIED_AT, OPERATION");
 			// 2. Default Column 설정
 			valueBuilder.append("#{").append(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()).append("}")
 					.append(COMMA_WITH_SPACE);
@@ -1501,12 +1496,15 @@ public class HiveEntitySqlProviderImpl {
 			valueBuilder.append("from_utc_timestamp(#{")
 					.append(DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode()).append("}, 'UTC')")
 					.append(COMMA_WITH_SPACE);
+			valueBuilder.append("#{").append(DataServiceBrokerCode.DefaultAttributeKey.OPERATION.getCode()).append("}")
+					.append(COMMA_WITH_SPACE);
 
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("DATASET_ID"));
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("CREATED_AT"));
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("MODIFIED_AT"));
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("ID"));
-
+			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("OPERATION"));
+			
 			// 3. Dynamic Entity Column 설정
 			for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
 
@@ -1554,7 +1552,7 @@ public class HiveEntitySqlProviderImpl {
 							.append(COMMA_WITH_SPACE);
 				} else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
 					tableColumns.replaceAll(
-							e -> (e.equalsIgnoreCase(columnName)) ? "ST_asText(ST_GeomFromGeoJSON(" + columnName + "))"
+							e -> (e.equalsIgnoreCase(columnName)) ? "ST_AsGeoJson(ST_GeomFromGeoJSON(" + columnName + "))"
 									: (e.equalsIgnoreCase(columnName + "_idx"))
 											? "ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(" + columnName + ")))"
 											: e);
@@ -1596,6 +1594,8 @@ public class HiveEntitySqlProviderImpl {
 
 		sql.append(insertBuilder.toString()).append(selectBuilder.toString()).append(valueBuilder.toString())
 				.append(asBuilder.toString());
+
+		System.out.println(sql.toString());
 		return sql.toString();
 
 	}
@@ -1631,7 +1631,7 @@ public class HiveEntitySqlProviderImpl {
 
 		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
 		if (dbColumnInfoVOMap != null) {
-			asBuilder.append("DATASET_ID, CREATED_AT, MODIFIED_AT");
+			asBuilder.append("DATASET_ID, CREATED_AT, MODIFIED_AT, OPERATION");
 			// 2. Default Column 설정
 			valueBuilder.append("#{").append(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()).append("}")
 					.append(COMMA_WITH_SPACE);
@@ -1641,11 +1641,13 @@ public class HiveEntitySqlProviderImpl {
 			valueBuilder.append("from_utc_timestamp(#{")
 					.append(DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode()).append("}, 'UTC')")
 					.append(COMMA_WITH_SPACE);
-
+			valueBuilder.append("#{").append(DataServiceBrokerCode.DefaultAttributeKey.OPERATION.getCode()).append("}")
+					.append(COMMA_WITH_SPACE);
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("DATASET_ID"));
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("CREATED_AT"));
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("MODIFIED_AT"));
 			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("ID"));
+			compareColumnList.removeIf(e -> e.toUpperCase().equalsIgnoreCase("OPERATION"));
 
 			// 3. Dynamic Entity Column 설정
 			for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
