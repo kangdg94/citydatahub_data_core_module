@@ -147,11 +147,7 @@ public class CommonEntityVO extends LinkedHashMap<String, Object> implements Com
         }
 
         for (String entryKey : targetKeys) {
-            for(Map.Entry<String, String> d : dataModelContextMap.entrySet()){
-                if(d.getKey().equalsIgnoreCase(entryKey)){
-                    entityVO.put(d.getKey(), entityVO.get(entryKey));
-                }
-            }
+            entityVO.put(d.getKey(), entityVO.get(entryKey));
             entityVO.remove(entryKey);
         }
     }
