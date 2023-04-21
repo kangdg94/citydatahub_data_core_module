@@ -74,8 +74,8 @@ ADD run-thrift.sh run-thrift.sh
 RUN chmod a+x run-thrift.sh
 
 ADD supervisord.conf supervisord.conf
-ADD ivy.settings ivy.settings 
-ADD thrift-server.sh /usr/local/thrift-server/bin/thrift-server.sh
+ADD ivy.settings ivy.settings
+ADD thrift-server.sh /usr/local/thrift-server/bin/thrift-server.sh 
 
 RUN dos2unix /usr/local/thrift-server/bin/thrift-server.sh
 RUN dos2unix /usr/local/thrift-server/sbin/datacore-start-thriftserver.sh
