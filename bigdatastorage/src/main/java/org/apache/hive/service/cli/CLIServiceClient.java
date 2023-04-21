@@ -18,11 +18,9 @@
 
 package org.apache.hive.service.cli;
 
-import org.apache.hive.service.auth.HiveAuthFactory;
-import org.apache.hive.service.cli.FetchType;
-import org.apache.hive.service.cli.*;
-
 import java.util.Collections;
+
+import org.apache.hive.service.auth.HiveAuthFactory;
 
 
 /**
