@@ -127,6 +127,8 @@ public class TestModel3CRUDTest {
       )
       .andExpect(status().isCreated())
       .andDo(print());
+      
+    String queryResponseCompare = "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"location\":{\"observedAt\":\"2023-06-18T15:00:00.000Z\",\"type\":\"GeoProperty\",\"value\":{\"type\":\"Point\",\"coordinates\":[-12.0,-5.0]}},\"objects\":{\"type\":\"Property\",\"value\":{\"date\":\"2023-06-18T15:00:00.000Z\",\"boolean\":true,\"string\":\"test\",\"double\":0.1,\"interger\":5}},\"observationSpace\":{\"type\":\"GeoProperty\",\"value\":{\"type\":\"Point\",\"coordinates\":[-12.0,-5.0]}},\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayDouble\":{\"type\":\"Property\",\"value\":[0.0,1.1]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayInteger\":{\"type\":\"Property\",\"value\":[1,2]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayObject\":{\"type\":\"Property\",\"value\":[{\"testArrObjInteger\":10,\"testArrObjDate\":\"2023-11-17T11:48:09.290Z\",\"testArrObjString\":\"string\",\"testArrObjDouble\":0.1,\"testArrObjBoolean\":true}]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayString\":{\"type\":\"Property\",\"value\":[\"test1\",\"test2\"]},\"http://uri.citydatahub.kr/ngsi-ld/testBoolean\":{\"type\":\"Property\",\"value\":true},\"http://uri.citydatahub.kr/ngsi-ld/testDate\":{\"type\":\"Property\",\"value\":\"2023-11-17T11:48:09.290Z\"},\"http://uri.citydatahub.kr/ngsi-ld/testDouble\":{\"type\":\"Property\",\"value\":0.1},\"http://uri.citydatahub.kr/ngsi-ld/testGeoJson\":{\"observedAt\":\"2023-06-18T15:00:00.000Z\",\"type\":\"GeoProperty\",\"value\":{\"type\":\"Point\",\"coordinates\":[-12.0,-5.0]}},\"http://uri.citydatahub.kr/ngsi-ld/testInteger\":{\"type\":\"Property\",\"value\":10},\"http://uri.citydatahub.kr/ngsi-ld/testRelationshipString\":{\"type\":\"Relationship\",\"object\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e1\"},\"http://uri.citydatahub.kr/ngsi-ld/testString\":{\"type\":\"Property\",\"value\":\"valuestring\"}}";
     
     resultActions =
       mvc
@@ -136,6 +138,7 @@ public class TestModel3CRUDTest {
             .accept(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
+        .andExpect(content().string(queryResponseCompare))
         .andDo(print());
 
     resultActions =
@@ -1756,16 +1759,16 @@ public class TestModel3CRUDTest {
 
     queryResponseCompare = "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"location\":{\"observedAt\":\"2023-06-18T15:00:00.000Z\",\"type\":\"GeoProperty\",\"value\":{\"type\":\"Point\",\"coordinates\":[-12.0,-6.0]}},\"objects\":{\"type\":\"Property\",\"value\":{\"date\":\"2023-06-18T15:00:00.000Z\",\"boolean\":true,\"string\":\"test\",\"double\":0.1,\"interger\":5}},\"observationSpace\":{\"type\":\"GeoProperty\",\"value\":{\"type\":\"Point\",\"coordinates\":[-12.0,-5.0]}},\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayDouble\":{\"type\":\"Property\",\"value\":[0.0,1.1]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayInteger\":{\"type\":\"Property\",\"value\":[1,2]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayObject\":{\"type\":\"Property\",\"value\":[{\"testArrObjInteger\":10,\"testArrObjDate\":\"2023-11-17T11:48:09.290Z\",\"testArrObjString\":\"string\",\"testArrObjDouble\":0.1,\"testArrObjBoolean\":true}]},\"http://uri.citydatahub.kr/ngsi-ld/testArrayString\":{\"type\":\"Property\",\"value\":[\"test1\",\"test2\"]},\"http://uri.citydatahub.kr/ngsi-ld/testBoolean\":{\"type\":\"Property\",\"value\":true},\"http://uri.citydatahub.kr/ngsi-ld/testDate\":{\"type\":\"Property\",\"value\":\"2023-11-17T11:48:09.290Z\"},\"http://uri.citydatahub.kr/ngsi-ld/testDouble\":{\"type\":\"Property\",\"value\":0.1},\"http://uri.citydatahub.kr/ngsi-ld/testGeoJson\":{\"observedAt\":\"2023-06-18T15:00:00.000Z\",\"type\":\"GeoProperty\",\"value\":{\"type\":\"Point\",\"coordinates\":[-12.0,-5.0]}},\"http://uri.citydatahub.kr/ngsi-ld/testInteger\":{\"type\":\"Property\",\"value\":10},\"http://uri.citydatahub.kr/ngsi-ld/testRelationshipString\":{\"type\":\"Relationship\",\"object\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e1\"},\"http://uri.citydatahub.kr/ngsi-ld/testString\":{\"type\":\"Property\",\"value\":\"valuestring\"}}";
 
-    // resultActions =
-    //   mvc
-    //     .perform(
-    //       MockMvcRequestBuilders
-    //         .get("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
-    //         .accept(MediaType.APPLICATION_JSON)
-    //     )
-    //     .andExpect(status().isOk())
-    //     .andExpect(content().string(queryResponseCompare))
-    //     .andDo(print());
+    resultActions =
+      mvc
+        .perform(
+          MockMvcRequestBuilders
+            .get("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
+            .accept(MediaType.APPLICATION_JSON)
+        )
+        .andExpect(status().isOk())
+        .andExpect(content().string(queryResponseCompare))
+        .andDo(print());
 
     resultActions =
       mvc
