@@ -1219,7 +1219,7 @@ public class HiveEntitySVC extends DefaultEntitySVC {
         List<Map<String, Object>> arrayObject = new ArrayList<>();
         
         
-        if(objectMemberMap != null && objectMemberMap.isEmpty()){
+        if(objectMemberMap != null && !objectMemberMap.isEmpty()){
         for (Map.Entry<String, Object> entry : objectMemberMap.entrySet()) {
 //        objectMemberMap.forEach((key, obj) -> {
         	String[] values = ((String) entry.getValue()).replaceAll("\\[", "").replaceAll("\\]", "").split(",");
