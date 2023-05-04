@@ -73,7 +73,4 @@ public interface HiveEntitySqlProvider {
 
     @SelectProvider(method = "selectCount")
     Integer selectCount(DbConditionVO dbConditionVO);
-
-    @SelectProvider(method = "selectHistCount")
-    Integer selectHistCount(DbConditionVO dbConditionVO);
 }
