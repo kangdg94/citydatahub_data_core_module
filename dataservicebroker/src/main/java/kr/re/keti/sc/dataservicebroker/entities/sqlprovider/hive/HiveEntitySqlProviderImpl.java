@@ -554,7 +554,7 @@ public class HiveEntitySqlProviderImpl {
 
 		insertValues.deleteCharAt(insertValues.length() - 2);
 		sql.append(insertValues).append(");");
-
+		
 		return sql.toString();
 	}
 
@@ -815,7 +815,7 @@ public class HiveEntitySqlProviderImpl {
 			sql.append(" where id=#{id}");
 
 		}
-
+		
 		return sql.toString();
 	}
 
@@ -1355,7 +1355,7 @@ public class HiveEntitySqlProviderImpl {
 			sql.append(")");
 			sql.append(" AS ").append("(").append(String.join(",", updateColumns)).append(");");
 		}
-
+		
 		return sql.toString();
 	}
 
@@ -1427,7 +1427,7 @@ public class HiveEntitySqlProviderImpl {
 
 		update.append("INSERT OVERWRITE TABLE").append(SPACE);
 		update.append(entityDaoVO.getDbTableName()).append(SPACE);
-		update.append("PARTITION (ID)").append(SPACE);
+		//update.append("PARTITION (ID)").append(SPACE);
 
 		// Update할 컬럼 설정
 		select.append("SELECT").append(SPACE);
@@ -1924,7 +1924,7 @@ public class HiveEntitySqlProviderImpl {
 				ORDER_BY("MODIFIED_AT DESC");
 			}
 		};
-
+		
 		return sql.toString();
 	}
 }
