@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.postgis.PGgeometry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
@@ -957,8 +958,8 @@ public class HiveEntitySVC extends DefaultEntitySVC {
         	if(columnName != null) {
         		Object value = dynamicEntityDaoVO.get(columnName.toLowerCase());
         		
-        		if (value != null) {
-        		
+                if (!ObjectUtils.isEmpty(value)) {
+                    
 	        		if (rootAttribute.getValueType() != null && isArrayType(rootAttribute.getValueType())) {
 	        			// Hive JDBC 에서는 Array 타입의 조회를 지원하지 않고, String 한줄로 리턴하기 때문에 파싱 및 캐스팅 작업이 필요
 	        			String[] values = ((String) value).replaceAll("\\[", "").replaceAll("\\]", "").split(",");
