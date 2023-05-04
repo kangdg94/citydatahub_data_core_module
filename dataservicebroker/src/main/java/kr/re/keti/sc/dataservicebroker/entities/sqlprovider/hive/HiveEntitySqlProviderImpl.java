@@ -390,7 +390,7 @@ public class HiveEntitySqlProviderImpl {
 
 		sql.append(insertBuilder.toString()).append(selectBuilder.toString()).append(valueBuilder.toString())
 				.append(asBuilder.toString()).append(")");
-    System.out.print("sql : " + sql.toString());
+    
 		return sql.toString();
 	}
 
@@ -554,7 +554,7 @@ public class HiveEntitySqlProviderImpl {
 
 		insertValues.deleteCharAt(insertValues.length() - 2);
 		sql.append(insertValues).append(");");
-
+		
 		return sql.toString();
 	}
 
@@ -815,7 +815,7 @@ public class HiveEntitySqlProviderImpl {
 			sql.append(" where id=#{id}");
 
 		}
-
+		
 		return sql.toString();
 	}
 
@@ -1355,7 +1355,7 @@ public class HiveEntitySqlProviderImpl {
 			sql.append(")");
 			sql.append(" AS ").append("(").append(String.join(",", updateColumns)).append(");");
 		}
-
+		
 		return sql.toString();
 	}
 
@@ -1427,7 +1427,7 @@ public class HiveEntitySqlProviderImpl {
 
 		update.append("INSERT OVERWRITE TABLE").append(SPACE);
 		update.append(entityDaoVO.getDbTableName()).append(SPACE);
-		update.append("PARTITION (ID)").append(SPACE);
+		//update.append("PARTITION (ID)").append(SPACE);
 
 		// Update할 컬럼 설정
 		select.append("SELECT").append(SPACE);
@@ -1595,7 +1595,7 @@ public class HiveEntitySqlProviderImpl {
 		sql.append(insertBuilder.toString()).append(selectBuilder.toString()).append(valueBuilder.toString())
 				.append(asBuilder.toString());
 
-		System.out.println(sql.toString());
+				
 		return sql.toString();
 
 	}
@@ -1808,7 +1808,7 @@ public class HiveEntitySqlProviderImpl {
 				}
 			}
 		};
-    System.out.print(sql.toString());
+    
 		return sql.toString();
 	}
 
@@ -1924,7 +1924,77 @@ public class HiveEntitySqlProviderImpl {
 				ORDER_BY("MODIFIED_AT DESC");
 			}
 		};
-
+		
 		return sql.toString();
 	}
+
+	public String selectCount(DbConditionVO dbConditionVO) {
+
+		String selectCondition = dbConditionVO.getSelectCondition();
+		String tableName = dbConditionVO.getTableName();
+		String geoCondition = dbConditionVO.getGeoCondition();
+		String queryCondition = dbConditionVO.getQueryCondition();
+
+		List<String> searchIdList = dbConditionVO.getSearchIdList();
+		String idPattern = dbConditionVO.getIdPattern();
+
+		Integer limit = dbConditionVO.getLimit();
+		Integer offset = dbConditionVO.getOffset();
+
+		SQL sql = new SQL() {
+			{ // 익명의 클래스 생성
+				SELECT("count(id)");
+				FROM(tableName);
+				if (idPattern != null) {
+					WHERE("id ~'" + idPattern + "'");
+
+				}
+				if (searchIdList != null) {
+
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append("(");
+
+					for (int i = 0; i < searchIdList.size(); i++) {
+						stringBuilder.append("'");
+						stringBuilder.append(searchIdList.get(i));
+						stringBuilder.append("'");
+
+						if (i != searchIdList.size() - 1) {
+
+							stringBuilder.append(",");
+
+						}
+
+					}
+					stringBuilder.append(")");
+
+					WHERE("id IN " + stringBuilder.toString());
+
+				}
+				if (geoCondition != null) {
+
+					WHERE(geoCondition);
+
+				}
+				if (queryCondition != null) {
+
+					WHERE(queryCondition);
+
+				}
+
+				if (limit != null && limit > 0) {
+
+					LIMIT(limit);
+				}
+
+				if (offset != null) {
+
+					OFFSET(offset);
+				}
+			}
+		};
+		
+		return sql.toString();
+	}
+
 }
