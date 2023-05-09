@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import kr.re.keti.sc.dataservicebroker.common.datamapperhandler.*;
@@ -38,6 +39,17 @@ public class HiveEntitySqlProviderImpl {
 		StringBuilder sql = new StringBuilder();
 		sql.append("REFRESH").append(SPACE).append(entityDaoVO.getDbTableName());
 
+		return sql.toString();
+	}
+
+	public String refreshTable(List<DynamicEntityDaoVO> entityDaoVOList) {
+		List<String> tableList = getTableListFromEntityList(entityDaoVOList);
+		StringBuilder sql = new StringBuilder();
+		for (String tableName : tableList) {
+			StringBuilder subQuery = new StringBuilder();
+			subQuery.append("REFRESH").append(SPACE).append(tableName).append(";");
+			sql.append(subQuery);
+		}
 		return sql.toString();
 	}
 
@@ -409,7 +421,170 @@ public class HiveEntitySqlProviderImpl {
 
 		sql.append("MERGE INTO").append(SPACE).append(entityDaoVO.getDbTableName()).append(SPACE).append("as target")
 				.append(SPACE);
-		sql.append("USING (select").append(SPACE);
+		sql.append("USING (SELECT").append(SPACE);
+		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
+		if (dbColumnInfoVOMap != null) {
+
+			// 2. Default Column 설정
+			select.append("#{" + DataServiceBrokerCode.DefaultAttributeKey.ID.getCode() + "} as ID")
+					.append(COMMA_WITH_SPACE);
+
+			select.append("from_utc_timestamp(#{")
+					.append(DataServiceBrokerCode.DefaultAttributeKey.CREATED_AT.getCode())
+					.append("}, 'UTC') as CREATED_AT").append(COMMA_WITH_SPACE);
+
+			// select.append("from_utc_timestamp(#{").append(
+			// "#{" + DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "},
+			// 'UTC') as MODIFIED_AT")
+			// .append(COMMA_WITH_SPACE);
+			// #{ 가 2개여서 하나 삭제
+			select.append("from_utc_timestamp(#{").append(
+					DataServiceBrokerCode.DefaultAttributeKey.MODIFIED_AT.getCode() + "}, 'UTC') as MODIFIED_AT")
+					.append(COMMA_WITH_SPACE);
+
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				select.append("#{" + DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode() + "} as DATASET_ID")
+						.append(COMMA_WITH_SPACE);
+			}
+
+			update.append("MODIFIED_AT = source.MODIFIED_AT").append(COMMA_WITH_SPACE);
+
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				update.append("DATASET_ID = source.DATASET_ID").append(COMMA_WITH_SPACE);
+			}
+
+			insertColumns.append("ID").append(COMMA_WITH_SPACE);
+			insertColumns.append("CREATED_AT").append(COMMA_WITH_SPACE);
+			insertColumns.append("MODIFIED_AT").append(COMMA_WITH_SPACE);
+
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				insertColumns.append("DATASET_ID").append(COMMA_WITH_SPACE);
+			}
+
+			insertValues.append("source.ID").append(COMMA_WITH_SPACE);
+			insertValues.append("source.CREATED_AT").append(COMMA_WITH_SPACE);
+			insertValues.append("source.MODIFIED_AT").append(COMMA_WITH_SPACE);
+
+			if (entityDaoVO.get(DataServiceBrokerCode.DefaultAttributeKey.DATASET_ID.getCode()) != null) {
+				insertValues.append("source.DATASET_ID").append(COMMA_WITH_SPACE);
+			}
+
+			// 3. Dynamic Entity Column 설정
+			//Set<String> updateQueryCols = entityDaoVO.keySet();
+			for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()) {
+				String daoAttributeId = dbColumnInfoVO.getDaoAttributeId();
+				String columnName = dbColumnInfoVO.getColumnName();
+				DbColumnType dbColumnType = dbColumnInfoVO.getColumnType();
+
+				if (dbColumnType == DbColumnType.VARCHAR) {
+					select.append("#{" + daoAttributeId + ", jdbcType=VARCHAR} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.INTEGER) {
+					select.append("#{" + daoAttributeId + ", jdbcType=INTEGER} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.FLOAT) {
+					select.append("#{" + daoAttributeId + ", jdbcType=FLOAT} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.BOOLEAN) {
+					select.append("#{").append(daoAttributeId).append(", jdbcType=BOOLEAN} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_VARCHAR) {
+					select.append("split(#{" + daoAttributeId + ", typeHandler="
+							+ StringArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',') as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_INTEGER) {
+					select.append("ST_ARRAYINT(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveIntegerArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_FLOAT) {
+					select.append("ST_ARRAYDOUBLE(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveDoubleArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
+					select.append("ST_ARRAYBOOLEAN(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveBooleanArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP) {
+					select.append("ST_ARRAYTIMESTAMP(split(#{" + daoAttributeId + ", typeHandler="
+							+ HiveDateArrayListTypeHandler.class.getName() + ", jdbcType=ARRAY}, ',')) as ")
+							.append(columnName).append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.TIMESTAMP) {
+					select.append("#{" + daoAttributeId + ", jdbcType=TIMESTAMP} as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+					select.append("ST_AsGeoJson(ST_GeomFromGeoJSON(#{" + daoAttributeId + "})) as ").append(columnName)
+							.append(COMMA_WITH_SPACE);
+					// select.append("ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}))) as ")
+					// 		.append(columnName).append("_idx").append(COMMA_WITH_SPACE);
+				} else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
+					select.append("ST_AsGeoJson(ST_Transform(ST_FlipCoordinates(ST_GeomFromGeoJSON(#{" + daoAttributeId
+							+ "})), 'epsg:4326','epsg:3857')) as ").append(columnName).append(COMMA_WITH_SPACE);
+				} else {
+					select.append("#{" + daoAttributeId + "} as ").append(columnName).append(COMMA_WITH_SPACE);
+				}
+
+				// update 되는 값에 대해서만 set 쿼리를 구성하도록 필터링 추가
+				
+				//if (updateQueryCols.contains(columnName)) {
+					update.append(columnName).append(" = ").append("source.").append(columnName).append(COMMA_WITH_SPACE);
+
+					// if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+					// 	update.append(columnName).append("_idx").append(" = ").append("source.").append(columnName)
+					// 			.append("_idx").append(COMMA_WITH_SPACE);
+					// }
+				//}
+
+				insertColumns.append(columnName).append(COMMA_WITH_SPACE);
+
+				// if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+				// 	insertColumns.append(columnName).append("_idx").append(COMMA_WITH_SPACE);
+				// }
+
+				insertValues.append("source.").append(columnName).append(COMMA_WITH_SPACE);
+
+				// if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+				// 	insertValues.append("source.").append(columnName).append("_idx").append(COMMA_WITH_SPACE);
+				// }
+			}
+		}
+
+		// 마지막 콤마 제거 ex) column, ) -> column)
+		select.deleteCharAt(select.length() - 2);
+		sql.append(select).append(") as source").append(SPACE);
+
+		sql.append("ON target.ID = source.ID").append(SPACE);
+
+		sql.append("WHEN MATCHED THEN UPDATE SET").append(SPACE);
+
+		update.deleteCharAt(update.length() - 2);
+		sql.append(update).append(SPACE);
+
+		sql.append("WHEN NOT MATCHED THEN INSERT (");
+
+		insertColumns.deleteCharAt(insertColumns.length() - 2);
+		sql.append(insertColumns).append(") VALUES (");
+
+		insertValues.deleteCharAt(insertValues.length() - 2);
+		sql.append(insertValues).append(");");
+
+		return sql.toString();
+	}
+	/**
+	 * Replace Entity Bulk Attributes 시 사용될 sql을 동적 생성
+	 *
+	 * @param entityDaoVO entitySchema 기반으로 파싱되어 생성된 eneityDaoVO
+	 * @return 생성된 sql문
+	 */
+	public String replaceAttrBulk(List<DynamicEntityDaoVO> entityDaoVOList) {
+		StringBuilder sql = new StringBuilder();
+		StringBuilder select = new StringBuilder();
+		StringBuilder update = new StringBuilder();
+		StringBuilder insertColumns = new StringBuilder();
+		StringBuilder insertValues = new StringBuilder();
+		CommonEntityDaoVO entityDaoVO = entityDaoVOList.get(0); // TODO
+		sql.append("MERGE INTO").append(SPACE).append(entityDaoVO.getDbTableName()).append(SPACE).append("as target")
+				.append(SPACE);
+		sql.append("USING (SELECT").append(SPACE);
 		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
 		if (dbColumnInfoVOMap != null) {
 
@@ -1411,6 +1586,92 @@ public class HiveEntitySqlProviderImpl {
 
 		return sql.toString();
 	}
+	/**
+	 * entity Bulk delete 시 사용될 sql을 동적 생성
+	 *
+	 * @param entityDaoVOList entitySchema 기반으로 파싱되어 리스트로 생성된 entityDaoVOList
+	 * @return 생성된 sql문
+	 */
+	public String deleteBulk(List<DynamicEntityDaoVO> entityDaoVOList) {
+		List<String> tableList = getTableListFromEntityList(entityDaoVOList);
+		StringBuilder sql = new StringBuilder();
+
+		for (String tableName : tableList) {
+			StringBuilder subQuery = new StringBuilder();
+			subQuery.append("DELETE FROM ").append(tableName);
+			for(int idx = 0; idx < entityDaoVOList.size(); idx++) {
+				DynamicEntityDaoVO entityDaoVO = entityDaoVOList.get(idx);
+				if (tableName.equals(entityDaoVO.getDbTableName())) {
+					if (idx == 0) {
+						subQuery.append(" WHERE ID = ").append(entityDaoVO.getId());
+					} else {
+						subQuery.append(" OR WHERE ID = ").append(entityDaoVO.getId());
+					}
+				}
+			}
+			subQuery.append(";");
+			sql.append(subQuery);
+		}
+		return sql.toString();
+	}
+
+	/**
+	 * entity이력 Bulk delete 시 사용될 sql을 동적 생성
+	 *
+	 * @param entityDaoVOList entitySchema 기반으로 파싱되어 리스트로 생성된 entityDaoVOList
+	 * @return 생성된 sql문
+	 */
+	public String deleteHistBulk(List<DynamicEntityDaoVO> entityDaoVOList) {
+		List<String> tableList = getTableListFromEntityList(entityDaoVOList);
+		StringBuilder sql = new StringBuilder();
+
+		for (String tableName : tableList) {
+			StringBuilder subQuery = new StringBuilder();
+			subQuery.append("DELETE FROM ").append(StringUtil.removeSpecialCharAndLower(tableName + Constants.PARTIAL_HIST_TABLE_PREFIX));
+			for(int idx = 0; idx < entityDaoVOList.size(); idx++) {
+				DynamicEntityDaoVO entityDaoVO = entityDaoVOList.get(idx);
+				if (tableName.equals(entityDaoVO.getDbTableName())) {
+					if (idx == 0) {
+						subQuery.append(" WHERE ID = ").append(entityDaoVO.getId());
+					} else {
+						subQuery.append(" OR WHERE ID = ").append(entityDaoVO.getId());
+					}
+				}
+			}
+			subQuery.append(";");
+			sql.append(subQuery);
+		}
+		return sql;
+	}
+
+	/**
+	 * entityFull이력 Bulk delete 시 사용될 sql을 동적 생성
+	 *
+	 * @param entityDaoVOList entitySchema 기반으로 파싱되어 리스트로 생성된 entityDaoVOList
+	 * @return 생성된 sql문
+	 */
+	public String deleteFullHistBulk(List<DynamicEntityDaoVO> entityDaoVOList) {
+		List<String> tableList = getTableListFromEntityList(entityDaoVOList);
+		StringBuilder sql = new StringBuilder();
+
+		for (String tableName : tableList) {
+			StringBuilder subQuery = new StringBuilder();
+			subQuery.append("DELETE FROM ").append(StringUtil.removeSpecialCharAndLower(tableName + Constants.FULL_HIST_TABLE_PREFIX));
+			for(int idx = 0; idx < entityDaoVOList.size(); idx++) {
+				DynamicEntityDaoVO entityDaoVO = entityDaoVOList.get(idx);
+				if (tableName.equals(entityDaoVO.getDbTableName())) {
+					if (idx == 0) {
+						subQuery.append(" WHERE ID = ").append(entityDaoVO.getId());
+					} else {
+						subQuery.append(" OR WHERE ID = ").append(entityDaoVO.getId());
+					}
+				}
+			}
+			subQuery.append(";");
+			sql.append(subQuery);
+		}
+		return sql;
+	}
 
 	/**
 	 * delete attribute 시 사용될 sql을 동적 생성
@@ -1927,4 +2188,13 @@ public class HiveEntitySqlProviderImpl {
 
 		return sql.toString();
 	}
+	private List<String> getTableListFromEntityList (List<DynamicEntityDaoVO> entityDaoVOList){
+		List<String> tableList = new ArrayList<>();
+		for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList) {
+			if (tableList.contains(entityDaoVO.getDbTableName())) {
+				tableList.add(entityDaoVO.getDbTableName());
+			}
+		}
+        return tableList;
+    }
 }

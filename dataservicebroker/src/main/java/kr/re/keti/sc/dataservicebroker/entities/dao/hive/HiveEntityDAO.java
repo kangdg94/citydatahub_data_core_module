@@ -102,7 +102,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 그동안은 single create를 사용하도록 false 반환
         // FIXME: 향후 벌크처리 수정
     	
-    	return null;
+
         
     	
 //    	// 결과 리스트
@@ -122,6 +122,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 //            processResultVOList.add(processResultVO);
 //        }
 //        return processResultVOList;
+return null;
     }
 
     /**
@@ -192,12 +193,19 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     class RetryThread implements Runnable {
 
         private CommonEntityDaoVO entityDaoVO;
+        private List<DynamicEntityDaoVO> entityDaoVOList;
         private HiveEntitySqlProvider mapper;
         private String executeType;
         private int count = 0;
 
         RetryThread (CommonEntityDaoVO entityDaoVO, HiveEntitySqlProvider mapper, String executeType) {
             this.entityDaoVO = entityDaoVO;
+            this.mapper = mapper;
+            this.executeType = executeType;
+        }
+
+        RetryThread (List<DynamicEntityDaoVO> entityDaoVO, HiveEntitySqlProvider mapper, String executeType) {
+            this.entityDaoVOList = entityDaoVO;
             this.mapper = mapper;
             this.executeType = executeType;
         }
@@ -220,6 +228,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
                         case "REPLACE_ATTR_HBASE": mapper.replaceAttrHBase(entityDaoVO); break;
                         case "REPLACE_ATTR": mapper.replaceAttr(entityDaoVO); break;
                         case "DELETE": mapper.delete(entityDaoVO); break;
+                        case "DELETE_BULK": mapper.deleteBulk(entityDaoVOList); break;
                         case "DELETE_ATTR": mapper.deleteAttr(entityDaoVO); break;
                     }
     
@@ -249,6 +258,25 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
             }
 
             service.execute(new RetryThread(entityDaoVO, mapper, executeType));
+
+            return 1;
+		} else {
+            logger.error("Concurrent error.", e);
+            
+            return 0;
+        }
+	}
+
+    private int concurrentCheckAndExecuteThread(List<DynamicEntityDaoVO> entityDaoVOList, HiveEntitySqlProvider mapper,
+                                                String executeType, UncategorizedSQLException e) {
+		if (isConcurrentException(e)) {
+            logger.info("ConcurrentException happen Thread start...");
+
+            if (service == null) {
+                service = Executors.newFixedThreadPool(threadPool);
+            }
+
+            service.execute(new RetryThread(entityDaoVOList, mapper, executeType));
 
             return 1;
 		} else {
@@ -658,10 +686,10 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     }
 
 
-    /**
+    /** 5월 9일 구현 대상
      * FULL UPSERT 벌크 처리
      * - Replace Entity Attributes 벌크 처리 후 result 가 0 인 항목들만 Create 수행
-     *
+     * - Bulk 처리 구현 시, fullupsert에서 발생하는 concurrent 문제 해결 예상
      * @param fullUpsertList FULL UPSERT 대상 VO 리스트
      * @return List<ProcessResultVO> 처리결과 리스트
      */
@@ -669,50 +697,29 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 //    @Transactional(value = "hiveDataSourceTransactionManager")
     public List<ProcessResultVO> bulkFullUpsert(List<DynamicEntityDaoVO> fullUpsertList) {
 
-    	return null;
-    	
-//        List<ProcessResultVO> processResultVOList = new ArrayList<>(fullUpsertList.size());
-//
-//        // DB 벌크처리 속도 최적화를 위해 update 전체 요청 처리 후 create 처리
-//        List<Integer> updateResult = new ArrayList<>(fullUpsertList.size());
-//
-//        EntitySqlProvider2 batchMapper = sqlSession.getMapper(EntitySqlProvider2.class);
-//
-//        // Replace Entity Attributes
-//        for (DynamicEntityDaoVO entityDaoVO : fullUpsertList) {
-//
-//            logger.debug("bulkFullUpsert. id=" + entityDaoVO.getId());
-//            List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
-//            entityDaoVO.setTableColumns(tableColumns);
-//            int result;
-//
-//            if (isUsingHBase(entityDaoVO.getDatasetId())) {
-//                result = batchMapper.replaceAttrHBase(entityDaoVO);
-//            } else {
-//                result = batchMapper.replaceAttr(entityDaoVO);
-//            }
-//
-//            updateResult.add(result);
-//        }
-//
-//        for (int i = 0; i < fullUpsertList.size(); i++) {
-//            ProcessResultVO processResultVO = new ProcessResultVO();
-//            processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
-//            int result = updateResult.get(i);
-//            if (result == 0) {
-//                // CREATE
-//                processResultVO.setProcessOperation(Operation.CREATE_ENTITY);
-//                List<String> tableColumns = hiveTableSVC.getTableScheme(fullUpsertList.get(i).getDbTableName());
-//                fullUpsertList.get(i).setTableColumns(tableColumns);
-//                batchMapper.create(fullUpsertList.get(i));
-//            }
-//
-//            processResultVO.setProcessResult(true);
-//            processResultVOList.add(processResultVO);
-//
-//            logger.debug("bulkFullUpsert. id=" + fullUpsertList.get(i).getId() + ", processResultVO=" + processResultVO);
-//        }
+       List<ProcessResultVO> processResultVOList = new ArrayList<>(fullUpsertList.size());
+       List<DynamicEntityDaoVO> entityDaoVOList = new ArrayList<>(fullUpsertList.size());
+       // Create Entity List
+       for (DynamicEntityDaoVO entityDaoVO : fullUpsertList) {
+           List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
+           entityDaoVO.setTableColumns(tableColumns);
+           entityDaoVOList.add(entityDaoVO);
+       }
+       HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
+       if (isUsingHBase(entityDaoVOList.get(0).getDatasetId())) {
+        //    result = mapper.replaceAttrHBaseBulk(entityDaoVO); // TODO
+       } else {
+            mapper.replaceAttrBulk(entityDaoVOList);
+       }
+       for (int i = 0; i < fullUpsertList.size(); i++) {
+           ProcessResultVO processResultVO = new ProcessResultVO();
+           processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
+           processResultVO.setProcessResult(true);
+           processResultVOList.add(processResultVO);
+           logger.debug("bulkFullUpsert. id=" + fullUpsertList.get(i).getId() + ", processResultVO=" + processResultVO);
+        }
 //        return processResultVOList;
+return null;
     }
 
     /**
@@ -871,46 +878,48 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Override
 //    @Transactional(value = "hiveDataSourceTransactionManager")
     public List<ProcessResultVO> bulkDelete(List<DynamicEntityDaoVO> deleteList) {
-    	
-    	return null;
-//        // 결과 리스트
-//        List<ProcessResultVO> processResultVOList = new ArrayList<>(deleteList.size());
-//
-//        for (DynamicEntityDaoVO entityDaoVO : deleteList) {
-//
-//            logger.debug("bulkDelete. id=" + entityDaoVO.getId());
-//
-//            // DELETE
-//            EntitySqlProvider2 batchMapper = batchSqlSession.getMapper(EntitySqlProvider2.class);
-//            int result = batchMapper.delete(entityDaoVO);
-//
-//            if (result > 0) {
-//                if (DataServiceBrokerCode.UseYn.YES.getCode().equals(deleteEntityHistoryYn)) {
-//                    batchMapper.deleteHist(entityDaoVO);
-//                }
-//
-//                if (DataServiceBrokerCode.UseYn.YES.getCode().equals(deleteEntityHistoryYn)) {
-//                    batchMapper.deleteFullHist(entityDaoVO);
-//                }
-//            }
-//
-//            // 결과 생성
-//            ProcessResultVO processResultVO = new ProcessResultVO();
-//            processResultVO.setProcessOperation(Operation.DELETE_ENTITY);
-//            if (result > 0) {
-//                processResultVO.setProcessResult(true);
-//            } else {
-//                processResultVO.setProcessResult(false);
-//                processResultVO.setException(new NgsiLdResourceNotFoundException(ErrorCode.INVALID_PARAMETER,
-//                        "Not Exists Target Entity. id=" + entityDaoVO.getId()));
-//                processResultVO.setErrorDescription("DELETE fail. Not Exists Target Entity. id=" + entityDaoVO.getId());
-//            }
-//            processResultVOList.add(processResultVO);
-//
-//            logger.debug("bulkDelete. id=" + entityDaoVO.getId() + ", processResultVO=" + processResultVO);
-//        }
-//
-//        return processResultVOList;
+        List<ProcessResultVO> processResultVOList = new ArrayList<>(deleteList.size());
+        List<DynamicEntityDaoVO> entityDaoVOList = createBulkEntityList(deleteList);
+
+        HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
+        int result;
+
+        try {
+            result = mapper.deleteBulk(entityDaoVOList);
+        } catch (UncategorizedSQLException e) {
+            result = concurrentCheckAndExecuteThread(entityDaoVOList, mapper, "DELETE_BULK", e);
+        }
+
+        if (result > 0 || result == -1) {
+            if (DataServiceBrokerCode.UseYn.YES.getCode().equals(deleteEntityHistoryYn)) {
+                mapper.deleteHistBulk(entityDaoVOList);
+                mapper.refreshTable(entityDaoVOList);
+            }
+
+            if (DataServiceBrokerCode.UseYn.YES.getCode().equals(deleteEntityHistoryYn)) {
+                mapper.deleteFullHistBulk(entityDaoVOList);
+                mapper.refreshTable(entityDaoVOList);
+            }
+        }
+
+        // 결과 생성
+
+       for (int i = 0; i < deleteList.size(); i++) {
+           ProcessResultVO processResultVO = new ProcessResultVO();
+           processResultVO.setProcessOperation(Operation.DELETE_ENTITY);
+           if (result > 0 || result == -1) {
+               processResultVO.setProcessResult(true);
+           } else {
+               processResultVO.setProcessResult(false);
+               processResultVO.setException(new NgsiLdResourceNotFoundException(ErrorCode.INVALID_PARAMETER,
+                       "Not Exists Target Entity. id=" + deleteList.get(i).getId()));
+               processResultVO.setErrorDescription("DELETE fail. Not Exists Target Entity. id=" + deleteList.get(i).getId());
+           }
+           processResultVOList.add(processResultVO);
+           logger.debug("bulkDelete. id=" + deleteList.get(i).getId() + ", processResultVO=" + processResultVO);
+        }
+       return processResultVOList;
+
     }
 
     /**
@@ -935,14 +944,13 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         }
 
         if (result > 0 || result == -1) {
-            HiveEntitySqlProvider batchMapper = batchSqlSession.getMapper(HiveEntitySqlProvider.class);
             if (DataServiceBrokerCode.UseYn.YES.getCode().equals(deleteEntityHistoryYn)) {
-                batchMapper.deleteHist(entityDaoVO);
+                mapper.deleteHist(entityDaoVO);
                 mapper.refreshTable(entityDaoVO);
             }
 
             if (DataServiceBrokerCode.UseYn.YES.getCode().equals(deleteEntityHistoryYn)) {
-                batchMapper.deleteFullHist(entityDaoVO);
+                mapper.deleteFullHist(entityDaoVO);
                 mapper.refreshTable(entityDaoVO);
             }
         }
@@ -1324,6 +1332,23 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         return selectCondition;
 
+    }
+    
+    /**
+     * Hive Bulk 처리를 위한 Entity 생성
+     * @param queryVO
+     * @param isTemproal 이력 데이터 조회 유무
+     * @return
+     */
+    private List<DynamicEntityDaoVO> createBulkEntityList (List<DynamicEntityDaoVO> entityDaoVOList){
+        List<DynamicEntityDaoVO> returnEntityDaoVOList = new ArrayList<>(entityDaoVOList.size());
+        // Create Entity List
+        for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList) {
+            List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
+            entityDaoVO.setTableColumns(tableColumns);
+            returnEntityDaoVOList.add(entityDaoVO);
+        }
+        return returnEntityDaoVOList;
     }
 
 }

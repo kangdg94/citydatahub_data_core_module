@@ -20,6 +20,9 @@ public interface HiveEntitySqlProvider {
     @UpdateProvider(method = "refreshTable")
     void refreshTable(CommonEntityDaoVO entityDaoVO);
 
+    @UpdateProvider(method = "refreshTable")
+    void refreshTable(List<DynamicEntityDaoVO> entityDaoVO);
+
     @InsertProvider(method = "bulkCreate")
     void bulkCreate(List<DynamicEntityDaoVO> entityDaoVOList);
 
@@ -28,6 +31,9 @@ public interface HiveEntitySqlProvider {
 
     @UpdateProvider(method = "replaceAttr")
     int replaceAttr(CommonEntityDaoVO entityDaoVO);
+    // update bulk logic
+    @UpdateProvider(method = "replaceAttrBulk")
+    int replaceAttrBulk(List<DynamicEntityDaoVO> entityDaoVO);
 
     @UpdateProvider(method = "replaceAttrHBase")
     int replaceAttrHBase(CommonEntityDaoVO entityDaoVO);
@@ -52,6 +58,15 @@ public interface HiveEntitySqlProvider {
 
     @DeleteProvider(method = "deleteFullHist")
     int deleteFullHist(CommonEntityDaoVO entityDaoVO);
+
+    @DeleteProvider(method = "deleteBulk")
+    int deleteBulk(List<DynamicEntityDaoVO> entityDaoVO);
+
+    @DeleteProvider(method = "deleteHistBulk")
+    int deleteHistBulk(List<DynamicEntityDaoVO> entityDaoVO);
+
+    @DeleteProvider(method = "deleteFullHistBulk")
+    int deleteFullHistBulk(List<DynamicEntityDaoVO> entityDaoVO);
 
     @UpdateProvider(method = "deleteAttr")
     int deleteAttr(CommonEntityDaoVO entityDaoVO);
