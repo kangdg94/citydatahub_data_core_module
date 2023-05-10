@@ -942,9 +942,12 @@ public class HiveEntitySqlProviderImpl {
 							.append(HiveDateArrayListTypeHandler.class.getName()).append(", jdbcType=ARRAY}")
 							.append(")");
 				} else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
-					sql.append("array(").append("#{").append(daoAttributeId).append(", typeHandler=")
-							.append(HiveBooleanArrayListTypeHandler.class.getName()).append(", jdbcType=ARRAY}")
+					sql.append("split(").append("#{").append(daoAttributeId).append(", typeHandler=")
+						.append(HiveBooleanArrayListTypeHandler.class.getName()).append("}, ','")
 							.append(")");
+					// sql.append("array(").append("#{").append(daoAttributeId).append(", typeHandler=")
+					// 		.append(HiveBooleanArrayListTypeHandler.class.getName()).append(", jdbcType=ARRAY}")
+					// 		.append(")");
 				} else if (dbColumnType == DbColumnType.TIMESTAMP) {
 					sql.append("from_utc_timestamp(#{").append(daoAttributeId).append("},'UTC')");
 				} else if (dbColumnType == DbColumnType.GEOMETRY_4326) { // 컬럼에 4326을 포함하는 경우, Geometry로 간주하여 처리
