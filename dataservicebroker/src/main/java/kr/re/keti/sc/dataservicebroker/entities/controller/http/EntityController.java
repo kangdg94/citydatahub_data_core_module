@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -1126,25 +1127,28 @@ public class EntityController {
                                                        String contentType) throws JsonMappingException, JsonProcessingException {
 
 
-        String entityType = null; //extractEntityTypeById(id);
-        String datasetId = null; //extractDatasetIdById(id);
-        String entityId = null;
+        String entityType = extractEntityTypeById(id);
+        String datasetId = extractDatasetIdById(id);
         IngestMessageVO requestMessageVO = new IngestMessageVO();
 
         Map<String, Object> obj = objectMapper.readValue(requestBody, Map.class);
         
-        entityId = obj.get(DefaultAttributeKey.ID.getCode()).toString();
-        entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
-        datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
-
-        aasSVC.checkCUDAccessRule(request, datasetId, operation);
-
+        if(StringUtils.isEmpty(id))
+            id = obj.get(DefaultAttributeKey.ID.getCode()).toString();
+        
+        if(StringUtils.isEmpty(entityType))
+            entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
+        
+        if(StringUtils.isEmpty(datasetId))
+            datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
+        
+            aasSVC.checkCUDAccessRule(request, datasetId, operation);
         
         requestMessageVO.setEntityType(entityType);
         requestMessageVO.setContent(requestBody);
         requestMessageVO.setDatasetId(datasetId);
         requestMessageVO.setOperation(operation);
-        requestMessageVO.setId(entityId);
+        requestMessageVO.setId(id);
         requestMessageVO.setTo(requestUri);
         requestMessageVO.setOperationOptions(operationOptions);
         requestMessageVO.setLinks(links);
