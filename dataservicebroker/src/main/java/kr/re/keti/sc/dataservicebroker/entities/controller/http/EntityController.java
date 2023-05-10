@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import kr.re.keti.sc.dataservicebroker.common.bulk.IBulkProcessor;
@@ -1092,6 +1093,8 @@ public class EntityController {
      * @param operation
      * @param id
      * @return
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
      */
     private List<IngestMessageVO> makeRequestMessageVO( HttpServletRequest request,
                                                         String requestBody,
@@ -1099,7 +1102,7 @@ public class EntityController {
                                                         String requestUri,
                                                         String id,
                                                         List<String> links,
-                                                        String contentType) {
+                                                        String contentType) throws JsonMappingException, JsonProcessingException {
         return makeRequestMessageVO(request, requestBody, operation, requestUri, id, null, links, contentType);
     }
 
@@ -1110,6 +1113,8 @@ public class EntityController {
      * @param operation
      * @param id
      * @return
+     * @throws JsonProcessingException
+     * @throws JsonMappingException
      */
     private List<IngestMessageVO> makeRequestMessageVO(HttpServletRequest request,
                                                        String requestBody,
@@ -1118,19 +1123,28 @@ public class EntityController {
                                                        String id,
                                                        List<OperationOption> operationOptions,
                                                        List<String> links,
-                                                       String contentType) {
+                                                       String contentType) throws JsonMappingException, JsonProcessingException {
 
 
-        String entityType = extractEntityTypeById(id);
-        String datasetId = extractDatasetIdById(id);
+        String entityType = null; //extractEntityTypeById(id);
+        String datasetId = null; //extractDatasetIdById(id);
+        String entityId = null;
+        IngestMessageVO requestMessageVO = new IngestMessageVO();
+
+        Map<String, Object> obj = objectMapper.readValue(requestBody, Map.class);
+        
+        entityId = obj.get(DefaultAttributeKey.ID.getCode()).toString();
+        entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
+        datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
+
         aasSVC.checkCUDAccessRule(request, datasetId, operation);
 
-        IngestMessageVO requestMessageVO = new IngestMessageVO();
+        
         requestMessageVO.setEntityType(entityType);
         requestMessageVO.setContent(requestBody);
         requestMessageVO.setDatasetId(datasetId);
         requestMessageVO.setOperation(operation);
-        requestMessageVO.setId(id);
+        requestMessageVO.setId(entityId);
         requestMessageVO.setTo(requestUri);
         requestMessageVO.setOperationOptions(operationOptions);
         requestMessageVO.setLinks(links);
@@ -1162,6 +1176,7 @@ public class EntityController {
 
         String entityId = null;
         String entityType = null;
+        String datasetId = null;
         for (Object jsonStr : jsonList) {
             try {
                 IngestMessageVO requestMessageVO = new IngestMessageVO();
@@ -1180,6 +1195,7 @@ public class EntityController {
                 } else {
                     HashMap<String, Object> obj = (HashMap<String, Object>) jsonStr;
                     entityId = obj.get(DefaultAttributeKey.ID.getCode()).toString();
+                    datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
                     if (operation == Operation.CREATE_ENTITY) {
                         entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
                     } else if ((operation == Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES)
@@ -1194,7 +1210,7 @@ public class EntityController {
                         requestMessageVO.setEntityType(entityType);
 
 
-                        String datasetId = extractDatasetIdById(entityId);
+                        datasetId = extractDatasetIdById(entityId);
                         requestMessageVO.setDatasetId(datasetId);
 
                     }
@@ -1206,6 +1222,7 @@ public class EntityController {
                     requestMessageVO.setContent(requestBody);
                     requestMessageVO.setOperation(operation);
                     requestMessageVO.setId(entityId);
+                    requestMessageVO.setDatasetId(datasetId);
                     requestMessageVO.setTo(requestUri);
                     requestMessageVO.setOperationOptions(operationOptions);
                     requestMessageVO.setLinks(links);
