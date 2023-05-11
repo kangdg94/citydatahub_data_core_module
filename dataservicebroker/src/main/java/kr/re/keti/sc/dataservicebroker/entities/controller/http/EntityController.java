@@ -1130,19 +1130,19 @@ public class EntityController {
         String entityType = extractEntityTypeById(id);
         String datasetId = extractDatasetIdById(id);
         IngestMessageVO requestMessageVO = new IngestMessageVO();
-
-        Map<String, Object> obj = objectMapper.readValue(requestBody, Map.class);
+        if (operation != Operation.DELETE_ENTITY) {
+            /* 단건 Delete 경우 body없으므로 JacksonMapper 적용X */
+            Map<String, Object> obj = objectMapper.readValue(requestBody, Map.class);
+            if(StringUtils.isEmpty(id))
+                id = obj.get(DefaultAttributeKey.ID.getCode()).toString();
+            if(StringUtils.isEmpty(entityType))
+                entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
+            if(StringUtils.isEmpty(datasetId))
+                datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
+            
+        } 
         
-        if(StringUtils.isEmpty(id))
-            id = obj.get(DefaultAttributeKey.ID.getCode()).toString();
-        
-        if(StringUtils.isEmpty(entityType))
-            entityType = obj.get(DefaultAttributeKey.TYPE.getCode()).toString();
-        
-        if(StringUtils.isEmpty(datasetId))
-            datasetId = obj.get(DefaultAttributeKey.DATASET_ID.getCode()).toString();
-        
-            aasSVC.checkCUDAccessRule(request, datasetId, operation);
+        aasSVC.checkCUDAccessRule(request, datasetId, operation);
         
         requestMessageVO.setEntityType(entityType);
         requestMessageVO.setContent(requestBody);
