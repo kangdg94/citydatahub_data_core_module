@@ -27,6 +27,9 @@ import java.util.HashMap;
 // import kr.re.keti.sc.dataservicebroker.common.exception.ngsild.NgsiLdResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
@@ -68,6 +71,9 @@ public class EntityControllerTest {
   @Autowired
   private DatasetFlowRetrieveSVC datasetFlowRetrieveSVC;
 
+  @Value("${entity.default.storage}")
+  private String datastorage;
+
   @Test
   void testCreate001_01() throws Exception {
 
@@ -103,7 +109,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -117,7 +123,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -209,7 +215,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -220,7 +226,7 @@ public class EntityControllerTest {
     } 
     
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -325,7 +331,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -338,7 +344,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -432,7 +438,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -448,7 +454,7 @@ public class EntityControllerTest {
       "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Invalid Request Content. @context parameter cannot be used when contentType=application/json\"}";
     
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -512,7 +518,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -525,7 +531,7 @@ public class EntityControllerTest {
      201 Bad Request TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -613,7 +619,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -626,9 +632,9 @@ public class EntityControllerTest {
      400 Bad Request TDD
 */
     String queryResponseCompare =
-      "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Not Found DataModel. datasetId=null, type=TestModel3\"}";
+      "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Invalid Request Content. No match attribute full uri. attribute name=testArrayBoolean, dataModel attribute uri=http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean but ingest attribute uri=null\"}";
     String inputData =
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -692,7 +698,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -707,7 +713,7 @@ public class EntityControllerTest {
     String queryResponseCompare = 
       "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Invalid Request Content. Link Header cannot be used when contentType=application/ld+json\"}";
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -775,7 +781,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -785,7 +791,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -876,7 +882,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -951,7 +957,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1026,7 +1032,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1038,7 +1044,7 @@ public class EntityControllerTest {
     String query_compare_response = 
       "[\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\"]";
     String inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
     /*
        201 No Content
     */
@@ -1131,7 +1137,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1240,7 +1246,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1252,7 +1258,7 @@ public class EntityControllerTest {
     String queryResponseCompare = 
       "[\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\"]";
     String inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
     /*
        201 No Content
     */
@@ -1345,7 +1351,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1457,7 +1463,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1468,7 +1474,7 @@ public class EntityControllerTest {
     } 
     //entity create
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -1653,7 +1659,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1664,7 +1670,7 @@ public class EntityControllerTest {
     } 
     //entity create
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -1693,7 +1699,7 @@ public class EntityControllerTest {
 
     //if existing then update
     inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]},\"type\":\"TestModel3\"}]";
 
     resultActions =
       mvc
@@ -1715,7 +1721,7 @@ public class EntityControllerTest {
     System.out.println("=====================End=====================");
 
     queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     resultActions =
       mvc
         .perform(
@@ -1786,7 +1792,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1797,7 +1803,7 @@ public class EntityControllerTest {
     } 
     //entity create
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -1826,7 +1832,7 @@ public class EntityControllerTest {
 
     //if existing then update
     inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]},\"type\":\"TestModel3\"}]";
     /*
     204 No Content
   */
@@ -1851,7 +1857,7 @@ public class EntityControllerTest {
     System.out.println("=====================End=====================");
 
     queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     resultActions =
       mvc
         .perform(
@@ -1922,7 +1928,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -1932,7 +1938,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -1960,7 +1966,7 @@ public class EntityControllerTest {
         .andDo(print());
 
     inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}]";
     /*
  204 No Content
 */
@@ -1985,7 +1991,7 @@ public class EntityControllerTest {
     System.out.println("=====================End=====================");
 
     queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     resultActions =
       mvc
         .perform(
@@ -2056,7 +2062,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2066,7 +2072,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -2094,7 +2100,7 @@ public class EntityControllerTest {
         .andDo(print());
 
     inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}]";
     /*
  204 No Content
 */
@@ -2119,7 +2125,7 @@ public class EntityControllerTest {
     System.out.println("=====================End=====================");
 
     queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     resultActions =
       mvc
         .perform(
@@ -2193,7 +2199,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2206,7 +2212,7 @@ public class EntityControllerTest {
     String queryResponseCompare = 
       "{\"errors\":[{\"entityId\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"error\":{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound\",\"title\":\"Resource Not Found\",\"detail\":\"Invalid Request Content. Not exists entityId=urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\"}}]}";
     String inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}]";
     /*
  207 No content
 */
@@ -2227,7 +2233,7 @@ public class EntityControllerTest {
 
     // succeed
     inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     resultActions =
       mvc
         .perform(
@@ -2256,7 +2262,7 @@ public class EntityControllerTest {
         .andDo(print());
 
     inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}]";
     /*
  204 No Content
 */
@@ -2281,7 +2287,7 @@ public class EntityControllerTest {
     System.out.println("=====================End=====================");
 
     queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     resultActions =
       mvc
         .perform(
@@ -2355,7 +2361,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2364,10 +2370,13 @@ public class EntityControllerTest {
       throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists data set flow. datasetId = " + datasetId);
       
     } 
+
+    wait(3000);
+
     String queryResponseCompare = 
       "[\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\"]";
     String inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}]";
     /*
        201 No Content
     */
@@ -2462,7 +2471,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2495,7 +2504,7 @@ public class EntityControllerTest {
     queryResponseCompare = 
       "[\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\"]";
     String inputData =
-      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}]";
+      "[{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}]";
     /*
        201 No Content
     */
@@ -2590,7 +2599,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2600,7 +2609,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\", \"datasetId\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\", \"datasetId\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -2631,7 +2640,7 @@ public class EntityControllerTest {
      204 No Content
     */
     inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
     resultActions =
       mvc
         .perform(
@@ -2722,7 +2731,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2737,7 +2746,7 @@ public class EntityControllerTest {
     String queryResponseCompare = 
       "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Invalid Request Content. entityId is not in URN format. id=thisisaninvaliduri\"}";
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -2801,7 +2810,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2816,7 +2825,7 @@ public class EntityControllerTest {
     String queryResponseCompare = 
       "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound\",\"title\":\"Resource Not Found\",\"detail\":\"Invalid Request Content. Not exists entityId=urn:datahub:TestModel\"}";
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -2949,7 +2958,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -2959,7 +2968,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\", \"datasetId\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\", \"datasetId\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -2987,7 +2996,7 @@ public class EntityControllerTest {
         .andDo(print());
 
     inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"type\":\"TestModel3\",\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]},\"type\":\"TestModel3\"}";
     /*
    204 No Content
 */
@@ -3013,7 +3022,7 @@ public class EntityControllerTest {
     System.out.println("=====================End=====================");
 
     queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     resultActions =
       mvc
         .perform(
@@ -3081,7 +3090,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -3091,7 +3100,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\", \"datasetId\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\", \"datasetId\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -3201,7 +3210,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -3350,7 +3359,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -3360,7 +3369,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -3388,7 +3397,7 @@ public class EntityControllerTest {
         .andDo(print());
 
     inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     /*
    204 No Content
 */
@@ -3414,7 +3423,7 @@ public class EntityControllerTest {
     System.out.println("=====================End=====================");
 
     queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[true,true]}}";
     resultActions =
       mvc
         .perform(
@@ -3482,7 +3491,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -3492,7 +3501,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -3551,7 +3560,7 @@ public class EntityControllerTest {
     queryResponseCompare = 
       "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Invalid Request Content. entityId is not in URN format. id=invalidurl\"}";
     inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
 
     resultActions =
       mvc
@@ -3642,7 +3651,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -3652,7 +3661,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -3773,252 +3782,257 @@ public class EntityControllerTest {
 
   @Test
   void testDeleteAttr013_02() throws Exception {
-        //데이터 모델 생성
-    String inputData_datamodel = "{\"context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"TestModel3\",\"type\":\"TestModel3\",\"typeUri\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"name\":\"TestModel3\",\"attributes\":[{\"name\":\"location\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/location\"},{\"name\":\"objects\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"interger\",\"valueType\":\"Integer\"},{\"name\":\"boolean\",\"valueType\":\"Boolean\"},{\"name\":\"string\",\"valueType\":\"String\"},{\"name\":\"date\",\"valueType\":\"Date\"},{\"name\":\"double\",\"valueType\":\"Double\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/hasObjects\"},{\"name\":\"observationSpace\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/observationSpace\"},{\"name\":\"testArrayBoolean\",\"isRequired\":false,\"valueType\":\"ArrayBoolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\"},{\"name\":\"testArrayDouble\",\"isRequired\":false,\"valueType\":\"ArrayDouble\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayDouble\"},{\"name\":\"testArrayInteger\",\"isRequired\":false,\"valueType\":\"ArrayInteger\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayInteger\"},{\"name\":\"testArrayObject\",\"isRequired\":false,\"valueType\":\"ArrayObject\",\"objectMembers\":[{\"name\":\"testArrObjString\",\"valueType\":\"String\"},{\"name\":\"testArrObjInteger\",\"valueType\":\"Integer\"},{\"name\":\"testArrObjDouble\",\"valueType\":\"Double\"},{\"name\":\"testArrObjBoolean\",\"valueType\":\"Boolean\"},{\"name\":\"testArrObjDate\",\"valueType\":\"Date\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayObject\"},{\"name\":\"testArrayString\",\"isRequired\":false,\"valueType\":\"ArrayString\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayString\"},{\"name\":\"testBoolean\",\"isRequired\":false,\"valueType\":\"Boolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testObject\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"string\",\"valueType\":\"String\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testObject\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testBoolean\"},{\"name\":\"testDate\",\"isRequired\":false,\"valueType\":\"Date\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDate\"},{\"name\":\"testDouble\",\"isRequired\":false,\"valueType\":\"Double\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDouble\"},{\"name\":\"testGeoJson\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testGeoJson\"},{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testRelationshipString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Relationship\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testRelationshipString\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"createdAt\":\"2022-03-29T04:04:28.836Z\",\"modifiedAt\":\"2022-10-25T04:12:09.291Z\"}";
+    if(datastorage.equals("rdb")) {
+          //데이터 모델 생성
+      String inputData_datamodel = "{\"context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"TestModel3\",\"type\":\"TestModel3\",\"typeUri\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"name\":\"TestModel3\",\"attributes\":[{\"name\":\"location\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/location\"},{\"name\":\"objects\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"interger\",\"valueType\":\"Integer\"},{\"name\":\"boolean\",\"valueType\":\"Boolean\"},{\"name\":\"string\",\"valueType\":\"String\"},{\"name\":\"date\",\"valueType\":\"Date\"},{\"name\":\"double\",\"valueType\":\"Double\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/hasObjects\"},{\"name\":\"observationSpace\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/observationSpace\"},{\"name\":\"testArrayBoolean\",\"isRequired\":false,\"valueType\":\"ArrayBoolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\"},{\"name\":\"testArrayDouble\",\"isRequired\":false,\"valueType\":\"ArrayDouble\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayDouble\"},{\"name\":\"testArrayInteger\",\"isRequired\":false,\"valueType\":\"ArrayInteger\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayInteger\"},{\"name\":\"testArrayObject\",\"isRequired\":false,\"valueType\":\"ArrayObject\",\"objectMembers\":[{\"name\":\"testArrObjString\",\"valueType\":\"String\"},{\"name\":\"testArrObjInteger\",\"valueType\":\"Integer\"},{\"name\":\"testArrObjDouble\",\"valueType\":\"Double\"},{\"name\":\"testArrObjBoolean\",\"valueType\":\"Boolean\"},{\"name\":\"testArrObjDate\",\"valueType\":\"Date\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayObject\"},{\"name\":\"testArrayString\",\"isRequired\":false,\"valueType\":\"ArrayString\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayString\"},{\"name\":\"testBoolean\",\"isRequired\":false,\"valueType\":\"Boolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testObject\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"string\",\"valueType\":\"String\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testObject\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testBoolean\"},{\"name\":\"testDate\",\"isRequired\":false,\"valueType\":\"Date\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDate\"},{\"name\":\"testDouble\",\"isRequired\":false,\"valueType\":\"Double\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDouble\"},{\"name\":\"testGeoJson\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testGeoJson\"},{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testRelationshipString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Relationship\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testRelationshipString\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"createdAt\":\"2022-03-29T04:04:28.836Z\",\"modifiedAt\":\"2022-10-25T04:12:09.291Z\"}";
 
-    String requestId = "6372e9fd-c007-4882-902d-6d964f4fbd5d";
-    Date now = new Date();
+      String requestId = "6372e9fd-c007-4882-902d-6d964f4fbd5d";
+      Date now = new Date();
 
-    dataModelSVC.processCreate("/datamodels", inputData_datamodel, requestId, now);
+      dataModelSVC.processCreate("/datamodels", inputData_datamodel, requestId, now);
 
-    //데이터 모델 조회
-    String dataModelId = "TestModel3";
-    DataModelBaseVO dataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(dataModelId);
-    if (dataModelBaseVO == null) {
-      throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. dataModelId =" + dataModelId);
-      
-    } 
-
-    //데이터 셋 생성
-    String inputData_dataset =
-      "{\"id\":\"TestModel3\",\"name\":\"TestModel3\",\"updateInterval\":\"-\",\"category\":\"환경\",\"providerOrganization\":\"-\",\"providerSystem\":\"-\",\"isProcessed\":\"원천데이터\",\"ownership\":\"-\",\"license\":\"CCBY\",\"datasetItems\":\"-\",\"targetRegions\":\"-\",\"qualityCheckEnabled\":false,\"dataModelId\":\"TestModel3\"}";
-      
-    datasetSVC.createDataset(inputData_dataset, requestId, now);
-
-    //데이터 셋 조회
-    String datasetId = "TestModel3";
-    DatasetBaseVO datasetBaseVO = datasetRetrieveSVC.getDatasetVOById(datasetId);
-    if (datasetBaseVO == null) {
-      throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. datasetId =" + datasetId);
-      
-    } 
-
-    //데이터 셋 플로우 생성
-    String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
-    datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
-
-    //데이터 셋 플로우 조회
-    DatasetFlowBaseVO datasetFlowBaseVO = datasetFlowRetrieveSVC.getDatasetFlowBaseVOById(datasetId);
-    if (datasetFlowBaseVO == null) {
-      throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists data set flow. datasetId = " + datasetId);
-      
-    } 
-    String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
-    ResultActions resultActions = mvc
-      .perform(
-        MockMvcRequestBuilders
-          .post("/entities")
-          .content(inputData)
-          .contentType("application/ld+json")
-          .accept(MediaType.APPLICATION_JSON)
-          .characterEncoding("utf-8")
-          .header("Content-Length", String.valueOf(inputData.length()))
-      )
-      .andExpect(status().isCreated())
-      .andDo(print());
-
-    String queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
-    resultActions =
-      mvc
-        .perform(
-          MockMvcRequestBuilders
-            .get("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
-            .accept(MediaType.APPLICATION_JSON)
-        )
-        .andExpect(status().isOk())
-        .andExpect(content().string(queryResponseCompare))
-        .andDo(print());
-
-    queryResponseCompare = 
-      "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Invalid Request Content. entityId is not in URN format. id=invalidurl\"}";
-    resultActions =
-      mvc
-        .perform(
-          MockMvcRequestBuilders
-            .delete("/entities/invalidurl/attrs/testArrayBoolean")
-            .contentType("application/json")
-            .accept(MediaType.APPLICATION_JSON)
-            .characterEncoding("utf-8")
-        )
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(queryResponseCompare))
-        .andDo(print());
-
-    MvcResult mvcResult = resultActions.andReturn();
-    System.out.println("=====================Post=====================");
-    System.out.println(mvcResult.getResponse().getContentAsString());
-    System.out.println("=====================End=====================");
-
-    resultActions =
-      mvc
-        .perform(
-          MockMvcRequestBuilders
-            .delete("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .characterEncoding("utf-8")
-        )
-        .andExpect(status().isNoContent())
-        .andDo(print());
+      //데이터 모델 조회
+      String dataModelId = "TestModel3";
+      DataModelBaseVO dataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(dataModelId);
+      if (dataModelBaseVO == null) {
+        throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. dataModelId =" + dataModelId);
         
-    //데이터 셋 플로우 삭제
-    datasetFlowSVC.deleteDatasetFlow("/datasets/TestModel3/flow", "");
+      } 
 
-    //데이터 셋 삭제
-    datasetSVC.deleteDataset("/datasets/TestModel3", "");
+      //데이터 셋 생성
+      String inputData_dataset =
+        "{\"id\":\"TestModel3\",\"name\":\"TestModel3\",\"updateInterval\":\"-\",\"category\":\"환경\",\"providerOrganization\":\"-\",\"providerSystem\":\"-\",\"isProcessed\":\"원천데이터\",\"ownership\":\"-\",\"license\":\"CCBY\",\"datasetItems\":\"-\",\"targetRegions\":\"-\",\"qualityCheckEnabled\":false,\"dataModelId\":\"TestModel3\"}";
+        
+      datasetSVC.createDataset(inputData_dataset, requestId, now);
 
-    //데이터 모델 삭제
-    dataModelSVC.processDelete("/datamodels/TestModel3", "TestModel3",requestId, now);        
+      //데이터 셋 조회
+      String datasetId = "TestModel3";
+      DatasetBaseVO datasetBaseVO = datasetRetrieveSVC.getDatasetVOById(datasetId);
+      if (datasetBaseVO == null) {
+        throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. datasetId =" + datasetId);
+        
+      } 
+
+      //데이터 셋 플로우 생성
+      String inputData_datasetflow = 
+      "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
+      datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
+
+      //데이터 셋 플로우 조회
+      DatasetFlowBaseVO datasetFlowBaseVO = datasetFlowRetrieveSVC.getDatasetFlowBaseVOById(datasetId);
+      if (datasetFlowBaseVO == null) {
+        throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists data set flow. datasetId = " + datasetId);
+        
+      } 
+      String inputData =
+        "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      ResultActions resultActions = mvc
+        .perform(
+          MockMvcRequestBuilders
+            .post("/entities")
+            .content(inputData)
+            .contentType("application/ld+json")
+            .accept(MediaType.APPLICATION_JSON)
+            .characterEncoding("utf-8")
+            .header("Content-Length", String.valueOf(inputData.length()))
+        )
+        .andExpect(status().isCreated())
+        .andDo(print());
+
+      String queryResponseCompare = 
+        "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+      resultActions =
+        mvc
+          .perform(
+            MockMvcRequestBuilders
+              .get("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
+              .accept(MediaType.APPLICATION_JSON)
+          )
+          .andExpect(status().isOk())
+          .andExpect(content().string(queryResponseCompare))
+          .andDo(print());
+
+      queryResponseCompare = 
+        "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/BadRequestData\",\"title\":\"Bad request data\",\"detail\":\"Invalid Request Content. entityId is not in URN format. id=invalidurl\"}";
+      resultActions =
+        mvc
+          .perform(
+            MockMvcRequestBuilders
+              .delete("/entities/invalidurl/attrs/testArrayBoolean")
+              .contentType("application/json")
+              .accept(MediaType.APPLICATION_JSON)
+              .characterEncoding("utf-8")
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(content().string(queryResponseCompare))
+          .andDo(print());
+
+      MvcResult mvcResult = resultActions.andReturn();
+      System.out.println("=====================Post=====================");
+      System.out.println(mvcResult.getResponse().getContentAsString());
+      System.out.println("=====================End=====================");
+
+      resultActions =
+        mvc
+          .perform(
+            MockMvcRequestBuilders
+              .delete("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
+              .contentType(MediaType.APPLICATION_JSON)
+              .accept(MediaType.APPLICATION_JSON)
+              .characterEncoding("utf-8")
+          )
+          .andExpect(status().isNoContent())
+          .andDo(print());
+          
+      //데이터 셋 플로우 삭제
+      datasetFlowSVC.deleteDatasetFlow("/datasets/TestModel3/flow", "");
+
+      //데이터 셋 삭제
+      datasetSVC.deleteDataset("/datasets/TestModel3", "");
+
+      //데이터 모델 삭제
+      dataModelSVC.processDelete("/datamodels/TestModel3", "TestModel3",requestId, now);    
+    }    
   }
 
   @Test
+  // @ConditionalOnExpression(datastorage.equals())
   void testDeleteAttr013_03() throws Exception {
+    if(datastorage.equals("rdb")) {
         //데이터 모델 생성
-    String inputData_datamodel = "{\"context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"TestModel3\",\"type\":\"TestModel3\",\"typeUri\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"name\":\"TestModel3\",\"attributes\":[{\"name\":\"location\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/location\"},{\"name\":\"objects\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"interger\",\"valueType\":\"Integer\"},{\"name\":\"boolean\",\"valueType\":\"Boolean\"},{\"name\":\"string\",\"valueType\":\"String\"},{\"name\":\"date\",\"valueType\":\"Date\"},{\"name\":\"double\",\"valueType\":\"Double\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/hasObjects\"},{\"name\":\"observationSpace\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/observationSpace\"},{\"name\":\"testArrayBoolean\",\"isRequired\":false,\"valueType\":\"ArrayBoolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\"},{\"name\":\"testArrayDouble\",\"isRequired\":false,\"valueType\":\"ArrayDouble\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayDouble\"},{\"name\":\"testArrayInteger\",\"isRequired\":false,\"valueType\":\"ArrayInteger\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayInteger\"},{\"name\":\"testArrayObject\",\"isRequired\":false,\"valueType\":\"ArrayObject\",\"objectMembers\":[{\"name\":\"testArrObjString\",\"valueType\":\"String\"},{\"name\":\"testArrObjInteger\",\"valueType\":\"Integer\"},{\"name\":\"testArrObjDouble\",\"valueType\":\"Double\"},{\"name\":\"testArrObjBoolean\",\"valueType\":\"Boolean\"},{\"name\":\"testArrObjDate\",\"valueType\":\"Date\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayObject\"},{\"name\":\"testArrayString\",\"isRequired\":false,\"valueType\":\"ArrayString\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayString\"},{\"name\":\"testBoolean\",\"isRequired\":false,\"valueType\":\"Boolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testObject\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"string\",\"valueType\":\"String\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testObject\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testBoolean\"},{\"name\":\"testDate\",\"isRequired\":false,\"valueType\":\"Date\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDate\"},{\"name\":\"testDouble\",\"isRequired\":false,\"valueType\":\"Double\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDouble\"},{\"name\":\"testGeoJson\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testGeoJson\"},{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testRelationshipString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Relationship\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testRelationshipString\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"createdAt\":\"2022-03-29T04:04:28.836Z\",\"modifiedAt\":\"2022-10-25T04:12:09.291Z\"}";
+        String inputData_datamodel = "{\"context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"id\":\"TestModel3\",\"type\":\"TestModel3\",\"typeUri\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"name\":\"TestModel3\",\"attributes\":[{\"name\":\"location\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/location\"},{\"name\":\"objects\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"interger\",\"valueType\":\"Integer\"},{\"name\":\"boolean\",\"valueType\":\"Boolean\"},{\"name\":\"string\",\"valueType\":\"String\"},{\"name\":\"date\",\"valueType\":\"Date\"},{\"name\":\"double\",\"valueType\":\"Double\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/hasObjects\"},{\"name\":\"observationSpace\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"https://uri.etsi.org/ngsi-ld/observationSpace\"},{\"name\":\"testArrayBoolean\",\"isRequired\":false,\"valueType\":\"ArrayBoolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\"},{\"name\":\"testArrayDouble\",\"isRequired\":false,\"valueType\":\"ArrayDouble\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayDouble\"},{\"name\":\"testArrayInteger\",\"isRequired\":false,\"valueType\":\"ArrayInteger\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayInteger\"},{\"name\":\"testArrayObject\",\"isRequired\":false,\"valueType\":\"ArrayObject\",\"objectMembers\":[{\"name\":\"testArrObjString\",\"valueType\":\"String\"},{\"name\":\"testArrObjInteger\",\"valueType\":\"Integer\"},{\"name\":\"testArrObjDouble\",\"valueType\":\"Double\"},{\"name\":\"testArrObjBoolean\",\"valueType\":\"Boolean\"},{\"name\":\"testArrObjDate\",\"valueType\":\"Date\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayObject\"},{\"name\":\"testArrayString\",\"isRequired\":false,\"valueType\":\"ArrayString\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testArrayString\"},{\"name\":\"testBoolean\",\"isRequired\":false,\"valueType\":\"Boolean\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testObject\",\"isRequired\":false,\"valueType\":\"Object\",\"objectMembers\":[{\"name\":\"string\",\"valueType\":\"String\"}],\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testObject\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testBoolean\"},{\"name\":\"testDate\",\"isRequired\":false,\"valueType\":\"Date\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDate\"},{\"name\":\"testDouble\",\"isRequired\":false,\"valueType\":\"Double\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testDouble\"},{\"name\":\"testGeoJson\",\"isRequired\":false,\"valueType\":\"GeoJson\",\"attributeType\":\"GeoProperty\",\"hasObservedAt\":true,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testGeoJson\"},{\"name\":\"testInteger\",\"isRequired\":false,\"valueType\":\"Integer\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testInteger\"},{\"name\":\"testRelationshipString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Relationship\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testRelationshipString\"},{\"name\":\"testString\",\"isRequired\":false,\"valueType\":\"String\",\"attributeType\":\"Property\",\"hasObservedAt\":false,\"hasUnitCode\":false,\"childAttributes\":[],\"attributeUri\":\"http://uri.citydatahub.kr/ngsi-ld/testString\"}],\"createdAt\":\"2022-03-29T04:04:28.836Z\",\"modifiedAt\":\"2022-10-25T04:12:09.291Z\"}";
 
-    String requestId = "6372e9fd-c007-4882-902d-6d964f4fbd5d";
-    Date now = new Date();
-
-    dataModelSVC.processCreate("/datamodels", inputData_datamodel, requestId, now);
-
-    //데이터 모델 조회
-    String dataModelId = "TestModel3";
-    DataModelBaseVO dataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(dataModelId);
-    if (dataModelBaseVO == null) {
-      throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. dataModelId =" + dataModelId);
-      
-    } 
-
-    //데이터 셋 생성
-    String inputData_dataset =
-      "{\"id\":\"TestModel3\",\"name\":\"TestModel3\",\"updateInterval\":\"-\",\"category\":\"환경\",\"providerOrganization\":\"-\",\"providerSystem\":\"-\",\"isProcessed\":\"원천데이터\",\"ownership\":\"-\",\"license\":\"CCBY\",\"datasetItems\":\"-\",\"targetRegions\":\"-\",\"qualityCheckEnabled\":false,\"dataModelId\":\"TestModel3\"}";
-      
-    datasetSVC.createDataset(inputData_dataset, requestId, now);
-
-    //데이터 셋 조회
-    String datasetId = "TestModel3";
-    DatasetBaseVO datasetBaseVO = datasetRetrieveSVC.getDatasetVOById(datasetId);
-    if (datasetBaseVO == null) {
-      throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. datasetId =" + datasetId);
-      
-    } 
-
-    //데이터 셋 플로우 생성
-    String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
-    datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
-
-    //데이터 셋 플로우 조회
-    DatasetFlowBaseVO datasetFlowBaseVO = datasetFlowRetrieveSVC.getDatasetFlowBaseVOById(datasetId);
-    if (datasetFlowBaseVO == null) {
-      throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists data set flow. datasetId = " + datasetId);
-      
-    } 
-    String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
-    ResultActions resultActions = mvc
-      .perform(
-        MockMvcRequestBuilders
-          .post("/entities")
-          .content(inputData)
-          .contentType("application/ld+json")
-          .accept(MediaType.APPLICATION_JSON)
-          .characterEncoding("utf-8")
-          .header("Content-Length", String.valueOf(inputData.length()))
-      )
-      .andExpect(status().isCreated())
-      .andDo(print());
-
-    String queryResponseCompare = 
-      "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
-    resultActions =
-      mvc
-        .perform(
-          MockMvcRequestBuilders
-            .get("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
-            .accept(MediaType.APPLICATION_JSON)
-        )
-        .andExpect(status().isOk())
-        .andExpect(content().string(queryResponseCompare))
-        .andDo(print());
-
-    queryResponseCompare = 
-      "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound\",\"title\":\"Resource Not Found\",\"detail\":\"Invalid Request Content. Not exists entityId=urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e_test\"}";
-    resultActions =
-      mvc
-        .perform(
-          MockMvcRequestBuilders
-            .delete(
-              "/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e_test/attrs/testArrayBoolean"
+        String requestId = "6372e9fd-c007-4882-902d-6d964f4fbd5d";
+        Date now = new Date();
+    
+        dataModelSVC.processCreate("/datamodels", inputData_datamodel, requestId, now);
+    
+        //데이터 모델 조회
+        String dataModelId = "TestModel3";
+        DataModelBaseVO dataModelBaseVO = dataModelRetrieveSVC.getDataModelBaseVOById(dataModelId);
+        if (dataModelBaseVO == null) {
+          throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. dataModelId =" + dataModelId);
+          
+        } 
+    
+        //데이터 셋 생성
+        String inputData_dataset =
+          "{\"id\":\"TestModel3\",\"name\":\"TestModel3\",\"updateInterval\":\"-\",\"category\":\"환경\",\"providerOrganization\":\"-\",\"providerSystem\":\"-\",\"isProcessed\":\"원천데이터\",\"ownership\":\"-\",\"license\":\"CCBY\",\"datasetItems\":\"-\",\"targetRegions\":\"-\",\"qualityCheckEnabled\":false,\"dataModelId\":\"TestModel3\"}";
+          
+        datasetSVC.createDataset(inputData_dataset, requestId, now);
+    
+        //데이터 셋 조회
+        String datasetId = "TestModel3";
+        DatasetBaseVO datasetBaseVO = datasetRetrieveSVC.getDatasetVOById(datasetId);
+        if (datasetBaseVO == null) {
+          throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists. datasetId =" + datasetId);
+          
+        } 
+    
+        //데이터 셋 플로우 생성
+        String inputData_datasetflow = 
+        "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
+        datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
+    
+        //데이터 셋 플로우 조회
+        DatasetFlowBaseVO datasetFlowBaseVO = datasetFlowRetrieveSVC.getDatasetFlowBaseVOById(datasetId);
+        if (datasetFlowBaseVO == null) {
+          throw new BadRequestException(ErrorCode.NOT_EXIST_ID, "Not Exists data set flow. datasetId = " + datasetId);
+          
+        } 
+        String inputData =
+          "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+        ResultActions resultActions = mvc
+          .perform(
+            MockMvcRequestBuilders
+              .post("/entities")
+              .content(inputData)
+              .contentType("application/ld+json")
+              .accept(MediaType.APPLICATION_JSON)
+              .characterEncoding("utf-8")
+              .header("Content-Length", String.valueOf(inputData.length()))
+          )
+          .andExpect(status().isCreated())
+          .andDo(print());
+    
+        String queryResponseCompare = 
+          "{\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"http://uri.citydatahub.kr/ngsi-ld/TestModel3\",\"http://uri.citydatahub.kr/ngsi-ld/testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]}}";
+        resultActions =
+          mvc
+            .perform(
+              MockMvcRequestBuilders
+                .get("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
+                .accept(MediaType.APPLICATION_JSON)
             )
-            .contentType("application/ld+json")
-            .accept(MediaType.APPLICATION_JSON)
-            .characterEncoding("utf-8")
-        )
-        .andExpect(status().isNotFound())
-        .andExpect(content().string(queryResponseCompare))
-        .andDo(print());
-
-    MvcResult mvcResult = resultActions.andReturn();
-    System.out.println("=====================Post=====================");
-    System.out.println(mvcResult.getResponse().getContentAsString());
-    System.out.println("=====================End=====================");
-
-    queryResponseCompare = 
-      "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound\",\"title\":\"Resource Not Found\",\"detail\":\"Not exists Entity Attribute. entityId=urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e, attrId=testArrayBooleanNotknown\"}";
-    resultActions =
-      mvc
-        .perform(
-          MockMvcRequestBuilders
-            .delete(
-              "/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e/attrs/testArrayBooleanNotknown"
+            .andExpect(status().isOk())
+            .andExpect(content().string(queryResponseCompare))
+            .andDo(print());
+    
+        queryResponseCompare = 
+          "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound\",\"title\":\"Resource Not Found\",\"detail\":\"Invalid Request Content. Not exists entityId=urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e_test\"}";
+        resultActions =
+          mvc
+            .perform(
+              MockMvcRequestBuilders
+                .delete(
+                  "/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e_test/attrs/testArrayBoolean"
+                )
+                .contentType("application/ld+json")
+                .accept(MediaType.APPLICATION_JSON)
+                .characterEncoding("utf-8")
             )
-            .contentType("application/ld+json")
-            .accept(MediaType.APPLICATION_JSON)
-            .characterEncoding("utf-8")
-        )
-        .andExpect(status().isNotFound())
-        .andExpect(content().string(queryResponseCompare))
-        .andDo(print());
-
-    mvcResult = resultActions.andReturn();
-    System.out.println("=====================Post=====================");
-    System.out.println(mvcResult.getResponse().getContentAsString());
-    System.out.println("=====================End=====================");
-
-    resultActions =
-      mvc
-        .perform(
-          MockMvcRequestBuilders
-            .delete("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .characterEncoding("utf-8")
-        )
-        .andExpect(status().isNoContent())
-        .andDo(print());
-        
-    //데이터 셋 플로우 삭제
-    datasetFlowSVC.deleteDatasetFlow("/datasets/TestModel3/flow", "");
-
-    //데이터 셋 삭제
-    datasetSVC.deleteDataset("/datasets/TestModel3", "");
-
-    //데이터 모델 삭제
-    dataModelSVC.processDelete("/datamodels/TestModel3", "TestModel3",requestId, now);        
+            .andExpect(status().isNotFound())
+            .andExpect(content().string(queryResponseCompare))
+            .andDo(print());
+    
+        MvcResult mvcResult = resultActions.andReturn();
+        System.out.println("=====================Post=====================");
+        System.out.println(mvcResult.getResponse().getContentAsString());
+        System.out.println("=====================End=====================");
+    
+        queryResponseCompare = 
+          "{\"type\":\"https://uri.etsi.org/ngsi-ld/errors/ResourceNotFound\",\"title\":\"Resource Not Found\",\"detail\":\"Not exists Entity Attribute. entityId=urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e, attrId=testArrayBooleanNotknown\"}";
+        resultActions =
+          mvc
+            .perform(
+              MockMvcRequestBuilders
+                .delete(
+                  "/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e/attrs/testArrayBooleanNotknown"
+                )
+                .contentType("application/ld+json")
+                .accept(MediaType.APPLICATION_JSON)
+                .characterEncoding("utf-8")
+            )
+            .andExpect(status().isNotFound())
+            .andExpect(content().string(queryResponseCompare))
+            .andDo(print());
+    
+        mvcResult = resultActions.andReturn();
+        System.out.println("=====================Post=====================");
+        System.out.println(mvcResult.getResponse().getContentAsString());
+        System.out.println("=====================End=====================");
+    
+        resultActions =
+          mvc
+            .perform(
+              MockMvcRequestBuilders
+                .delete("/entities/urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .characterEncoding("utf-8")
+            )
+            .andExpect(status().isNoContent())
+            .andDo(print());
+            
+        //데이터 셋 플로우 삭제
+        datasetFlowSVC.deleteDatasetFlow("/datasets/TestModel3/flow", "");
+    
+        //데이터 셋 삭제
+        datasetSVC.deleteDataset("/datasets/TestModel3", "");
+    
+        //데이터 모델 삭제
+        dataModelSVC.processDelete("/datamodels/TestModel3", "TestModel3",requestId, now);        
+    }
   }
 
   @Test
@@ -4055,7 +4069,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4068,7 +4082,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -4156,7 +4170,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4169,7 +4183,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -4257,7 +4271,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4270,7 +4284,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
     ResultActions resultActions = mvc
       .perform(
         MockMvcRequestBuilders
@@ -4360,7 +4374,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4373,7 +4387,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -4463,7 +4477,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4476,7 +4490,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -4587,7 +4601,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4601,7 +4615,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -4624,6 +4638,7 @@ public class EntityControllerTest {
           MockMvcRequestBuilders
             .get("/entities")
             .accept(MediaType.APPLICATION_JSON)
+            .param("id", "urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e")
             .param("attrs", "testArrayBoolean")
             .contentType("application/ld+json")
             .header(
@@ -4696,7 +4711,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4709,7 +4724,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -4805,7 +4820,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4818,7 +4833,7 @@ public class EntityControllerTest {
      201 Created TDD
 */
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -4910,7 +4925,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -4920,7 +4935,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -5023,7 +5038,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -5033,7 +5048,7 @@ public class EntityControllerTest {
       
     } 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -5137,7 +5152,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -5148,7 +5163,7 @@ public class EntityControllerTest {
     } 
 
     String inputData =
-      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+      "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -5236,7 +5251,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -5247,7 +5262,7 @@ public class EntityControllerTest {
     } 
 
     String inputData =
-    "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+    "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -5335,7 +5350,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -5346,7 +5361,7 @@ public class EntityControllerTest {
     } 
 
     String inputData =
-    "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+    "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
@@ -5434,7 +5449,7 @@ public class EntityControllerTest {
 
     //데이터 셋 플로우 생성
     String inputData_datasetflow = 
-    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\"hive\"]}";
+    "{\"historyStoreType\":\"all\",\"enabled\":true,\"bigDataStorageTypes\":[\""+ datastorage + "\"]}";
     datasetFlowSVC.createDatasetFlow("/datasets/TestModel3/flow", inputData_datasetflow, requestId, now);
 
     //데이터 셋 플로우 조회
@@ -5445,7 +5460,7 @@ public class EntityControllerTest {
     } 
 
     String inputData =
-    "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
+    "{\"@context\":[\"http://uri.citydatahub.kr/ngsi-ld/testmodel2.jsonld\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"],\"datasetId\":\"TestModel3\",\"testArrayBoolean\":{\"type\":\"Property\",\"value\":[false,true]},\"id\":\"urn:datahub:TestModel3:70-b3-d5-67-60-00-5c-1e\",\"type\":\"TestModel3\"}";
 
     ResultActions resultActions = mvc
       .perform(
