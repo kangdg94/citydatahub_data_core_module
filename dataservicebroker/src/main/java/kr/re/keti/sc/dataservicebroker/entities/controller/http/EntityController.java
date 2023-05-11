@@ -1213,8 +1213,9 @@ public class EntityController {
                         }
                         requestMessageVO.setEntityType(entityType);
 
-
-                        datasetId = extractDatasetIdById(entityId);
+                        if(ValidateUtil.isEmptyData(datasetId)){
+                            datasetId = extractDatasetIdById(datasetId);
+                        }
                         requestMessageVO.setDatasetId(datasetId);
 
                     }
