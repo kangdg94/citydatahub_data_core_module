@@ -942,7 +942,7 @@ public class HiveEntitySqlProviderImpl {
 							.append(HiveDateArrayListTypeHandler.class.getName()).append(", jdbcType=ARRAY}")
 							.append(")");
 				} else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN) {
-					sql.append("array(").append("#{").append(daoAttributeId).append(", typeHandler=")
+					sql.append("split(").append("#{").append(daoAttributeId).append(", typeHandler=")
 							.append(HiveBooleanArrayListTypeHandler.class.getName()).append(", jdbcType=ARRAY}")
 							.append(")");
 				} else if (dbColumnType == DbColumnType.TIMESTAMP) {
