@@ -699,6 +699,8 @@ public class QueryUtil {
 
         columnName = columnName.replace(".", "_");
 
+        columnName = columnName.toLowerCase();
+
         // q query로 받은 datasetId 를 column명 dataset_id 로 변환
         if(DefaultAttributeKey.DATASET_ID.getCode().equals(attrName)) {
         	columnName = DefaultDbColumnName.DATASET_ID.getCode();
@@ -707,11 +709,11 @@ public class QueryUtil {
         if(dataModelCacheVO != null
                 && dataModelCacheVO.getDataModelStorageMetadataVO() != null
                 && dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap() != null
-                && !dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap().containsKey(columnName.toLowerCase())) {
+                && !dataModelCacheVO.getDataModelStorageMetadataVO().getDbColumnInfoVOMap().containsKey(columnName)) {
             throw new NgsiLdBadRequestException(ErrorCode.REQUEST_MESSAGE_PARSING_ERROR, "invalid q-query params. attrName=" + attrName);
         }
 
-        return columnName;
+        return columnName;//TODO: need to check
     }
 
 

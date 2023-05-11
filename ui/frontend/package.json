@@ -1,7 +1,9 @@
 {
-  "name": "datacore-front",
-  "version": "0.1.0",
+  "name": "datacore-ui-frontend",
+  "version": "2.1.1",
   "private": true,
+  "description": "City data hub data core module - UI frontend application",
+  "author": "IoTKETI",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot --host=localhost",
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules",

@@ -13,16 +13,16 @@
 	
 	<groupId>kr.re.keti.sc</groupId>
 	<artifactId>data-service-broker</artifactId>
-	<version>2.0.0-SNAPSHOT</version>
+	<version>2.0.1</version>
 	<name>data-service-broker</name>
-	<description>Data Hub Data Service Broker Project</description>
+	<description>City data hub data core module - data service broker application</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-		<jar.name>DataServiceBroker</jar.name>
+		<maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
+		<jar.name>data-service-broker</jar.name>
 	</properties>
 
 	<dependencies>
@@ -66,11 +66,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
 		</dependency>
@@ -89,13 +84,7 @@
 		    <artifactId>mybatis</artifactId>
 		    <version>3.5.6</version>
 		</dependency>
-		
-		<dependency>
-			<groupId>org.mybatis.spring.boot</groupId>
-			<artifactId>mybatis-spring-boot-starter</artifactId>
-			<version>2.1.0</version>
-		</dependency>
-		
+
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-dbcp2</artifactId>
@@ -241,8 +230,8 @@
 
 	<build>
         <defaultGoal>install</defaultGoal>
-        <directory>${basedir}/target</directory>
-        <finalName>${artifactId}-${version}</finalName>
+        <directory>${project.basedir}/target</directory>
+        <finalName>${project.artifactId}-${project.version}</finalName>
 
         <resources>
 			<resource>
@@ -263,19 +252,18 @@
                 </configuration>
             </plugin>
 			<plugin>
-				<groupId>com.spotify</groupId>
+				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>1.0.0</version>
+				<version>0.42.1</version>
 				<configuration>
-					<imageName>keti/sc/${name}</imageName>
-					<dockerDirectory>src/main/docker</dockerDirectory>
-					<resources>
-						<resource>
-							<targetPath>/</targetPath>
-							<directory>${project.build.directory}</directory>
-							<include>${project.build.finalName}.jar</include>
-						</resource>
-					</resources>
+					<images>
+						<image>
+							<name>keti/sc/${project.name}</name>
+							<build>
+								<dockerFileDir>${project.basedir}</dockerFileDir>
+							</build>
+						</image>
+					</images>
 				</configuration>
 			</plugin>
         </plugins>

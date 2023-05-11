@@ -4,18 +4,38 @@
 import axios from 'axios';
 import qs from 'qs';
 
-const request = (method, url, data) => {
-  return axios({
-    method,
-    url,
-    data,
-  }).then(response => response.data)
-    .catch(response => {
-      const {status} = response;
-      // TODO : Code define
-      // alert(response);
-      throw Error(response);
+const request = async (method, url, data) => {
+  try {
+    const response = await axios({
+      method,
+      url,
+      data,
     });
+
+    console.info("HTTP: " + response.status);
+    if (response.status >= 200 && response.status <= 299) {
+      return response.data;
+    } else {
+      switch (response.status) {
+        case 400:
+          throw new Error("잘못된 요청입니다. (Bad Request)");
+        case 401:
+          throw new Error("인증이 필요합니다. (Unauthorized)");
+        case 403:
+          throw new Error("접근이 금지되었습니다. (Forbidden)");
+        case 404:
+          throw new Error("요청한 리소스를 찾을 수 없습니다. (Not Found)");
+        case 500:
+          throw new Error("서버 내부 오류가 발생했습니다. (Internal Server Error)");
+        default:
+          throw new Error("HTTP 요청 실패: " + response.status + " (Unknown Error)");
+      }
+    }
+  } catch (error) {
+    console.error("HTTP 요청 실패: " + error.message + " (Request Failed)");
+    alert("HTTP 요청 실패: " + error.message + " (Request Failed)");
+    throw error;
+  }
 };
 
 const urlWithQuery = (url, params) => {

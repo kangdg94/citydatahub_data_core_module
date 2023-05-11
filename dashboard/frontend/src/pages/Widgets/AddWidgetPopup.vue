@@ -42,7 +42,7 @@
               <el-select
                 class="mr-sm-2"
                 v-model="dataModel"
-                :placeholder="$t('message.selectOption')"
+                :placeholder="$t('message.selectOptionEntity')"
                 size="small"
                 style="width: 100%;"
                 @change="onDataModelChange"
@@ -96,7 +96,7 @@
                 :collapse-tags="isEntityIdMultiple"
                 size="small"
                 style="width: 100%;"
-                :placeholder="$t('message.selectOption')"
+                :placeholder="$t('message.selectOptionEntity')"
                 @change="onSelectedEntity"
                 :disabled="isEntityIdDisabled"
               >
@@ -146,6 +146,8 @@
                 id="inline-form-input-name"
                 class="mr-sm-2"
                 v-model="formData['chartTitle']"
+                placeholder="최대 32자"
+                maxlength="32"
               />
             </div>
           </div>
@@ -248,7 +250,7 @@
             <div class="form-group">
               <label class="control-label">{{ $t('widget.labelOfYaxis') }}
               </label>
-              <input type="text" class="form-control" v-model="formData['chartYName']"/>
+              <input type="text" class="form-control" v-model="formData['chartYName']" placeholder="최대 20자" maxlength="20"/>
             </div>
           </div>
           <div
@@ -257,7 +259,7 @@
           >
             <div class="form-group">
               <label class="control-label">{{ $t('widget.labelOfXaxis') }}</label>
-              <input type="text" class="form-control" v-model="formData['chartXName']"/>
+              <input type="text" class="form-control" v-model="formData['chartXName']" placeholder="최대 20자" maxlength="20"/>
             </div>
           </div>
           <div
@@ -1014,6 +1016,7 @@ export default {
           });
           break;
         case 'bar' :
+          this.formData.dataType = 'last';
           this.initDisplay({
             chartType: true,
             chartTitle: true,
@@ -1040,7 +1043,7 @@ export default {
           });
           break;
         case 'line' :
-          this.formData.dataType = this.formData.dataType || 'history';
+          this.formData.dataType = 'history';
           this.initDisplay({
             chartType: true,
             chartTitle: true,
@@ -1148,7 +1151,7 @@ export default {
       // start exceptions
 
       // 1. String value cannot be selected for chart-type widgets.
-      const notPermitStrChartType = chartType === 'pie' || chartType === 'donut' || chartType === 'bar' || chartType === 'line';
+      const notPermitStrChartType = chartType === 'pie' || chartType === 'donut' || chartType === 'bar' || chartType === 'line' || chartType === 'boolean' || chartType === 'histogram' || chartType === 'scatter';
       if (notPermitStrChartType && this.validation.chartAttribute === "STRING") {
         this.$alert(this.$i18n.t('message.notSupportStringType'));
         return;
@@ -1167,7 +1170,7 @@ export default {
       }
 
       // 3-1. Number value only can be selected for scatter widgets.
-      const isNumberType = (data) => (['INTEGER', 'DOUBLE', 'NUMBER'].indexOf(data.valueType) < 0);
+      const isNumberType = (data) => (['INTEGER', 'DOUBLE', 'FLOAT', 'NUMBER'].indexOf(data.valueType) < 0);
       if (chartType === 'scatter' && (isNumberType(this.attrs.x) || isNumberType(this.attrs.y))) {
         this.$alert(this.$i18n.t('message.onlySupportNumberType'));
         return;
@@ -1216,6 +1219,21 @@ export default {
       } else {
         this.formData.entityRetrieveVO = null;
       }
+      
+      // Code for limiting the number of entities
+      if (this.entityId.length > 0) {
+        const entityIdCount = this.entityId.join().split(',').length;
+
+        if (this.entityId.length > 1000) {
+          this.$alert(this.$i18n.t('message.MaximumLengthOfEntities'));
+          return;
+        }
+
+        if (entityIdCount > 10) {
+          this.$alert(this.$i18n.t('message.MaximumNumberOfEntities'));
+          return;
+        }
+      }   
 
       // api updateInterval default 0 setting
       // (Error occurs when requesting deletion of widget websocket.)
@@ -1236,6 +1254,29 @@ export default {
         this.formData.extention2 = this.validation.chartAttribute;
       } else if (chartType === 'scatter') {
         this.formData.chartAttribute = `${this.attrs.x.id}, ${this.attrs.y.id}`;
+      }
+
+      // chartAttribute validation
+      if (chartType === 'histogram') {
+        if (this.validation.chartAttribute !== "INTEGER") {
+          this.$alert(this.$i18n.t('message.onlySupportIntegerType'));
+          return;
+        }
+      }
+
+      if (chartType === 'boolean') {
+        if (this.validation.chartAttribute !== "BOOLEAN") {
+          this.$alert(this.$i18n.t('message.notSupportType'));
+          return;
+        }
+      }
+
+      // TODO: 하드코딩 방식에서 벗어나기
+      const notSupportedAttrs = ['isVirtualData', 'location', 'name', 'waterType', 'pipeType', 'operationStatus', 'waterProcessType', 'deviceId'];
+      
+      if (notPermitStrChartType && notSupportedAttrs.includes(this.formData.entityRetrieveVO.attrs[0])) {
+        this.$alert(this.$i18n.t('message.notSupportType'));
+        return;
       }
 
       if (this.visibleTreeOption) {
