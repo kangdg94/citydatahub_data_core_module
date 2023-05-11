@@ -499,12 +499,12 @@ public class HiveEntitySqlProviderImpl {
 				} else if (dbColumnType == DbColumnType.TIMESTAMP) {
 					select.append("#{" + daoAttributeId + ", jdbcType=TIMESTAMP} as ").append(columnName)
 							.append(COMMA_WITH_SPACE);
-				} else if (dbColumnType == DbColumnType.GEOMETRY_4326) {
+				} else if (dbColumnType == DbColumnType.GEOMETRY_4326 && entityDaoVO.containsKey(daoAttributeId)) {
 					select.append("ST_AsGeoJson(ST_GeomFromGeoJSON(#{" + daoAttributeId + "})) as ").append(columnName)
 							.append(COMMA_WITH_SPACE);
 					// select.append("ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(#{" + daoAttributeId + "}))) as ")
 					// 		.append(columnName).append("_idx").append(COMMA_WITH_SPACE);
-				} else if (dbColumnType == DbColumnType.GEOMETRY_3857) {
+				} else if (dbColumnType == DbColumnType.GEOMETRY_3857 && entityDaoVO.containsKey(daoAttributeId)) {
 					select.append("ST_AsGeoJson(ST_Transform(ST_FlipCoordinates(ST_GeomFromGeoJSON(#{" + daoAttributeId
 							+ "})), 'epsg:4326','epsg:3857')) as ").append(columnName).append(COMMA_WITH_SPACE);
 				} else {
