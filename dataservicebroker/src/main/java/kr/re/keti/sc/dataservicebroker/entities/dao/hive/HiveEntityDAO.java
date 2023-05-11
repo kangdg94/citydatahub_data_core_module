@@ -449,7 +449,8 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         int result;
 
         try {
-            result = mapper.appendAttr(entityDaoVO);
+            //result = mapper.appendAttr(entityDaoVO);
+            result = mapper.replaceAttr(entityDaoVO);
         } catch (UncategorizedSQLException e) {
             result = concurrentCheckAndExecuteThread(entityDaoVO, mapper, "APPEND_ATTR", e);
         }
