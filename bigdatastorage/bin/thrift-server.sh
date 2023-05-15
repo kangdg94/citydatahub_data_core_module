@@ -40,7 +40,6 @@ if [ "start" == "${thriftMode}" ]; then
   --master ${sparkMaster} \
   --packages io.dtonic.geohiker:geohiker-spark:${geohikerVersion},io.dtonic.geohiker:geohiker-datastore:${geohikerVersion} \
   --conf spark.jars.ivySettings=${ivyDir} \
-
   ${GEOHIKER_HOME}/libs/Thrift-Server-1.0.jar
 elif [ "stop" == "${thriftMode}" ]; then
   ${GEOHIKER_HOME}/sbin/datacore-stop-thriftserver.sh
