@@ -65,7 +65,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Autowired
     private DataModelManager dataModelManager;
 
-    @Value("${entity.history.retrive.full.yn:N}")
+    @Value("${entity.history.retrieve.full.yn:N}")
     public String retrieveFullHistoryYn;    //Entity 전체 이력 조회 여부
     
     @Value("${entity.retrieve.default.limit:1000}")

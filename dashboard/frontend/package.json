@@ -1,9 +1,9 @@
 {
-  "name": "citydatahub_usertool",
-  "version": "0.0.1",
+  "name": "datacore-usertool-frontend",
+  "version": "2.1.1",
   "private": true,
-  "description": "Vue light bootstrap dashboard",
-  "author": "cristijora <joracristi@gmail.com>",
+  "description": "City data hub datacore module - usertool frontend application",
+  "author": "IoTKETI",
   "scripts": {
     "serve": "vue-cli-service serve --open",
     "build": "vue-cli-service build",
@@ -20,6 +20,7 @@
     "google-maps": "^4.3.3",
     "moment": "^2.29.1",
     "register-service-worker": "^1.5.2",
+    "uuidv4": "^6.2.13",
     "v-tooltip": "^2.0.0-rc.33",
     "vue-chartjs": "^3.5.1",
     "vue-grid-layout": "^2.3.12",

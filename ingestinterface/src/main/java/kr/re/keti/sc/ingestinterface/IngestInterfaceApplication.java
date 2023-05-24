@@ -33,10 +33,10 @@ public class IngestInterfaceApplication {
     @Value("${server.http.port}")
     private String httpPort;
 
-    @Value("${embeded_tomcat.keep-alive.maxKeepAliveRequests}")
+    @Value("${embedded_tomcat.keep-alive.maxKeepAliveRequests}")
     private Integer maxKeepAliveRequests;
 
-    @Value("${embeded_tomcat.keep-alive.keepAliveTimeout}")
+    @Value("${embedded_tomcat.keep-alive.keepAliveTimeout}")
     private Integer keepAliveTimeout;
 
     @Value("${server.timezone:Asia/Seoul}")

@@ -834,6 +834,7 @@ public class HiveEntitySqlProviderImpl {
 		StringBuilder updateColumns = new StringBuilder();
 		StringBuilder updateValues = new StringBuilder();
 
+
 		sql.append("MERGE INTO").append(SPACE).append(entityDaoVO.getDbTableName()).append(SPACE).append("as target")
 				.append(SPACE);
 		sql.append("USING (select").append(SPACE);
@@ -1572,7 +1573,6 @@ public class HiveEntitySqlProviderImpl {
 		sql.append(insertBuilder.toString()).append(selectBuilder.toString()).append(valueBuilder.toString())
 				.append(asBuilder.toString());
 
-				
 		return sql.toString();
 
 	}
