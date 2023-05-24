@@ -1214,7 +1214,7 @@ public class EntityController {
                         requestMessageVO.setEntityType(entityType);
 
                         if(ValidateUtil.isEmptyData(datasetId)){
-                            datasetId = extractDatasetIdById(datasetId);
+                            datasetId = extractDatasetIdById(entityId);
                         }
                         requestMessageVO.setDatasetId(datasetId);
 
