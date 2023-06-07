@@ -31,14 +31,13 @@ task makeTar(type: Tar) {
     doLast {
         copy {
             from "$buildDir/dist/thrift-server-1.0.tar.gz"
-            into "docker/thrift/thrift-server/"
-
+            into "docker/thrift/"
         }
     }
 }
 
 ext {
-    geohikerVersion = '1.2.55'
+    geohikerVersion = '1.2.56'
 }
 
 dependencies {

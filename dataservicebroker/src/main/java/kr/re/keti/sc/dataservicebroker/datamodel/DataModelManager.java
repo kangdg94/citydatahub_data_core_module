@@ -363,10 +363,22 @@ public class DataModelManager {
     if (dataModelVO == null || ValidateUtil.isEmptyData(fullUriAttrs)) {
       return false;
     }
+    return includeAttrInDataModel(dataModelVO.getAttributes(), fullUriAttrs);
+  }
 
+  private boolean includeAttrInDataModel(
+          List<Attribute> attributes,
+          List<String> fullUriAttrs
+  ) {
     for (String fullUriAttr : fullUriAttrs) {
       boolean isMatch = false;
-      for (Attribute attribute : dataModelVO.getAttributes()) {
+      for (Attribute attribute : attributes) {
+        if (!ValidateUtil.isEmptyData(attribute.getChildAttributes())) {
+          if(includeAttrInDataModel(attribute.getChildAttributes(), new ArrayList<>(Arrays.asList(fullUriAttr)))) {
+            isMatch = true;
+            break;
+          }
+        }
         if (fullUriAttr.equals(attribute.getAttributeUri())) {
           isMatch = true;
           break;
@@ -1258,6 +1270,9 @@ public class DataModelManager {
       }
     }
     // 전체 context 결과 반환
+
+
+
     return contextTotalMap;
   }
 

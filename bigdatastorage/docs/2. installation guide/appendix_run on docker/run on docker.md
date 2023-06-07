@@ -30,7 +30,20 @@ docker 및 docker-compose가 설치되어있지 않은 경우, 아래의 명령�
     ```bash
     docker network create -d bridge local-docker-bridge
     ```
+  <br/>
 
+  - Postgresql과 Hadoop의 volume을 마운트 할 로컬 디렉토리 변경
+
+    - `/usr/local/lib/citydatahub_data_core_module/bigdatastorage/docker` 하위에 있는 `.env 파일` 수정을 통해 Postgresql과 Hadoop의 volume을 마운트 할 로컬 디렉토리의 경로를 변경할 수 있습니다.
+
+        ```bash
+        # /usr/local/lib/citydatahub_data_core_module/bigdatastorage/docker/.env
+        # 기본 설정 경로
+
+        POSTGRESQL_LOCAL_PATH=/usr/local/lib/postgresql/data
+        HADOOP_LOCAL_PATH=/hdfs-data
+        
+        ```
   <br/>
 
   - `/usr/local/lib/citydatahub_data_core_module/bigdatastorage/docker` 하위에 있는 docker-compose.yml 파일 실행
@@ -148,7 +161,7 @@ docker-compose 파일에서는 PostgreSQL의 5432 포트에 접근하도록 포�
 ```
 <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:postgresql://7x_postgres:5432/hive</value>
+    <value>jdbc:postgresql://meta_db:5432/hive</value>
 </property>
 ```
 
@@ -163,3 +176,32 @@ docker-compose 파일에서는 PostgreSQL의 5432 포트에 접근하도록 포�
 ```
 
 위의 환경 설정을 수정한 후에 추가된 설정 정보를 적용하기 위해 Thrift 서버를 재시작 해주시기 바랍니다.
+
+<br/>
+
+## HDFS 데이터 수동 백업
+
+<br/>
+
+HDFS에 적재된 데이터는 컨테이너가 재기동 후에도 유지되어야 하기 때문에 아래 과정을 통해 HDFS의 데이터를 수동으로 백업합니다. 
+
+아래 과정은 Hadoop 컨테이너 내에 접속하여 시행하도록 합니다. 
+
+<br/>
+
+### 1. HDFS 내 데이터 백업
+
+Hadoop Docker 컨테이너 내 /hdfs-data 디렉토리는 로컬 시스템의 hdfs_local_data 디렉토리와 volume mount되어 있습니다. 데이터를 백업하기 위해서는 아래 명령을 통해 docker 컨테이너 내 /hdfs-data 디렉토리에 HDFS 내 데이터 파일을 복사하도록 합니다.
+
+```zsh
+hdfs dfs -get /user/hive/warehouse/* /hdfs-data 
+```
+
+### 2. Hadoop 컨테이너 재기동 후
+
+컨테이너가 재기동된 후에는 /user/hive/warehouse 디렉토리가 삭제된 상태이기 때문에 우선 /user/hive/warehouse 디렉토리를 생성한 후에 hdfs-data 디렉토리(Hadoop container) 내에 백업된 데이터를 HDFS에 업로드하도록 합니다.
+
+```zsh
+hdfs dfs -mkdir -p /user/hive/warehouse   
+hdfs dfs -put hdfs-data/* /user/hive/warehouse  
+```

@@ -49,6 +49,7 @@
         
         <root level="INFO">
             <appender-ref ref="ASYNC_FILE_APPENDER" />
+            <appender-ref ref="CONSOLE" />
         </root>
     </springProfile>
 

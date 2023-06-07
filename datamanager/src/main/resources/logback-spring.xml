@@ -17,12 +17,12 @@
     </appender>
 
     <appender name="FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logging.base.dir}/dataManager.log</file>
+        <file>${logging.base.dir}/data-manager.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p [%t] %logger{39} : %m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logging.base.dir}/dataManager.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${logging.base.dir}/data-manager.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>200MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>50GB</totalSizeCap>
@@ -30,12 +30,12 @@
     </appender>
     
     <appender name="ERROR_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logging.base.dir}/error/dataManager-error.log</file>
+        <file>${logging.base.dir}/error/data-manager_error.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p [%t] %logger{39} : %m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logging.base.dir}/error/dataManager-error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${logging.base.dir}/error/data-manager_error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>200MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>50GB</totalSizeCap>
@@ -75,6 +75,7 @@
         
         <root level="INFO">
             <appender-ref ref="ASYNC_FILE_APPENDER" />
+            <appender-ref ref="CONSOLE" />
         </root>
     </springProfile>
 

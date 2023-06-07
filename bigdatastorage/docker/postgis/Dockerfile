@@ -2,13 +2,23 @@ FROM postgres
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update
-RUN apt-get -y install postgis
+ENV LANG en_US.utf8
+ENV LC_ALL en_US.utf8
+RUN apt-get update && apt-get install -y locales && \
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen
 
 
-ADD ./init /docker-entrypoint-initdb.d/
+RUN apt-get update && \
+    apt-get -y upgrade && \
+    apt-get -y install \
+            postgis \
+            dos2unix && \
+    apt-get -y autoremove && \
+    apt-get autoclean
 
-## dos line end -> linux line end
-RUN sed -i -e 's/\r$//' /docker-entrypoint-initdb.d/01-createdb.sh
+WORKDIR /docker-entrypoint-initdb.d
 
-EXPOSE 5432
+ADD ./init .
+
+RUN dos2unix 01-createdb.sh

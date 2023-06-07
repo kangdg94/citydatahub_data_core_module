@@ -87,7 +87,7 @@ public class RdbEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Value("${entity.history.delete.yn}")
     public String deleteEntityHistoryYn; // Entity 삭제 시 이력까지 모두 삭제 여부
 
-    @Value("${entity.history.retrive.full.yn:N}")
+    @Value("${entity.history.retrieve.full.yn:N}")
     public String retrieveFullHistoryYn;    //Entity 전체 이력 조회 여부
     
     @Value("${entity.retrieve.default.limit:1000}")
