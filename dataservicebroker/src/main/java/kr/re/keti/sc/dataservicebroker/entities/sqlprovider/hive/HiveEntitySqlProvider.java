@@ -20,23 +20,26 @@ public interface HiveEntitySqlProvider {
     @UpdateProvider(method = "refreshTable")
     void refreshTable(CommonEntityDaoVO entityDaoVO);
 
-    @UpdateProvider(method = "refreshTable")
-    void refreshTable(List<DynamicEntityDaoVO> entityDaoVO);
+    @UpdateProvider(method = "refreshTableBulk")
+    void refreshTableBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVO);
 
     @InsertProvider(method = "bulkCreate")
-    void bulkCreate(List<DynamicEntityDaoVO> entityDaoVOList);
+    void bulkCreate(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
 
     @InsertProvider(method = "create")
     void create(CommonEntityDaoVO entityDaoVO);
 
     @UpdateProvider(method = "replaceAttr")
     int replaceAttr(CommonEntityDaoVO entityDaoVO);
-    // update bulk logic
+
     @UpdateProvider(method = "replaceAttrBulk")
     int replaceAttrBulk(List<DynamicEntityDaoVO> entityDaoVO);
 
     @UpdateProvider(method = "replaceAttrHBase")
     int replaceAttrHBase(CommonEntityDaoVO entityDaoVO);
+
+    @UpdateProvider(method = "replaceAttrHBaseBulk")
+    int replaceAttrHBaseBulk(List<DynamicEntityDaoVO> entityDaoVO);
 
     @UpdateProvider(method = "appendAttr")
     int appendAttr(CommonEntityDaoVO entityDaoVO);
@@ -60,22 +63,22 @@ public interface HiveEntitySqlProvider {
     int deleteFullHist(CommonEntityDaoVO entityDaoVO);
 
     @DeleteProvider(method = "deleteBulk")
-    int deleteBulk(List<DynamicEntityDaoVO> entityDaoVO);
+    int deleteBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVO);
 
     @DeleteProvider(method = "deleteHistBulk")
-    int deleteHistBulk(List<DynamicEntityDaoVO> entityDaoVO);
+    int deleteHistBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVO);
 
     @DeleteProvider(method = "deleteFullHistBulk")
-    int deleteFullHistBulk(List<DynamicEntityDaoVO> entityDaoVO);
+    int deleteFullHistBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVO);
 
     @UpdateProvider(method = "deleteAttr")
     int deleteAttr(CommonEntityDaoVO entityDaoVO);
 
     @UpdateProvider(method = "createHist")
-    int createHist(CommonEntityDaoVO entityDaoVO);
+    int createHist(String tableName, List<DynamicEntityDaoVO> entityDaoVO);
 
     @UpdateProvider(method = "createFullHist")
-    int createFullHist(CommonEntityDaoVO entityDaoVO);
+    int createFullHist(String tableName, List<DynamicEntityDaoVO> entityDaoVO);
 
     @SelectProvider(method = "selectOne")
     DynamicEntityDaoVO selectOne(DbConditionVO dbConditionVO);
