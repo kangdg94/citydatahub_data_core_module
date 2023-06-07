@@ -1922,9 +1922,13 @@ public class HiveEntitySqlProviderImpl {
 											if(dbColumnInfoVO.getColumnType().equals(DbColumnType.INTEGER) || dbColumnInfoVO.getColumnType().equals(DbColumnType.BOOLEAN) || dbColumnInfoVO.getColumnType().equals(DbColumnType.FLOAT)){
 												valueEntityBuilder.append(inputValue);
 											} else {
-												valueEntityBuilder.append("'");
-												valueEntityBuilder.append(inputValue);
-												valueEntityBuilder.append("'");
+												if(inputValue.equals(null)){
+													valueEntityBuilder.append(inputValue);
+												}else{
+													valueEntityBuilder.append("'");
+													valueEntityBuilder.append(inputValue);
+													valueEntityBuilder.append("'");
+												}
 											}
 											valueEntityBuilder.append(COMMA_WITH_SPACE);
 											break;
