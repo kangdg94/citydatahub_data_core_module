@@ -100,11 +100,11 @@ public class HiveEntitySVC extends DefaultEntitySVC {
 
             DynamicEntityDaoVO entityDaoVO = entityProcessVO.getEntityDaoVO();
             ProcessResultVO processResultVO = entityProcessVO.getProcessResultVO();
-            entityTableName = entityDaoVO.getDbTableName();
             // 2. 실패 항목과 Delete는 이력저장에서 제외
             if (!processResultVO.isProcessResult() || processResultVO.getProcessOperation().name().equals(Operation.DELETE_ENTITY.name())) {
                 continue;
             }
+            entityTableName = entityDaoVO.getDbTableName();
 
             if (logMessage.length() == 0) {
                 logMessage.append(entityProcessVO.getDatasetId()).append(" Process SUCCESS");
@@ -242,10 +242,12 @@ public class HiveEntitySVC extends DefaultEntitySVC {
             }
         }
         // Table Refresh
-        try{
-            entityDAO.refreshTable(entityTableName);
-        } catch (Exception e) {
-            log.error("Table Refresh error", e);
+        if(entityTableName != null){
+            try{
+                entityDAO.refreshTable(entityTableName);
+            } catch (Exception e) {
+                log.error("Table Refresh error", e);
+            }
         }
     }
     
