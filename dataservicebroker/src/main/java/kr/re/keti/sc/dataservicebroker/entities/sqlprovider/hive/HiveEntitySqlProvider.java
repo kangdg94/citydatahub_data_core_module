@@ -21,7 +21,7 @@ public interface HiveEntitySqlProvider {
     void refreshTable(CommonEntityDaoVO entityDaoVO);
 
     @UpdateProvider(method = "refreshTableBulk")
-    void refreshTableBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
+    void refreshTableBulk(String tableName);
 
     @InsertProvider(method = "bulkCreate")
     void bulkCreate(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);

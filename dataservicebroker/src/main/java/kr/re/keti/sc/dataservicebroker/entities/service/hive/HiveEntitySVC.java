@@ -95,12 +95,12 @@ public class HiveEntitySVC extends DefaultEntitySVC {
         List<DynamicEntityDaoVO> createFullHistoryTargetVOList = new ArrayList<>();
 
         StringBuilder logMessage = new StringBuilder();
-
+        String entityTableName = null;
         for (EntityProcessVO<DynamicEntityFullVO, DynamicEntityDaoVO> entityProcessVO : entityProcessVOList) {
 
             DynamicEntityDaoVO entityDaoVO = entityProcessVO.getEntityDaoVO();
             ProcessResultVO processResultVO = entityProcessVO.getProcessResultVO();
-
+            entityTableName = entityDaoVO.getDbTableName();
             // 2. 실패 항목과 Delete는 이력저장에서 제외
             if (!processResultVO.isProcessResult() || processResultVO.getProcessOperation().name().equals(Operation.DELETE_ENTITY.name())) {
                 continue;
@@ -240,6 +240,12 @@ public class HiveEntitySVC extends DefaultEntitySVC {
             } catch (Exception e) {
                 log.error("Store entity FULL history error", e);
             }
+        }
+        // Table Refresh
+        try{
+            entityDAO.refreshTable(entityTableName);
+        } catch (Exception e) {
+            log.error("Table Refresh error", e);
         }
     }
     

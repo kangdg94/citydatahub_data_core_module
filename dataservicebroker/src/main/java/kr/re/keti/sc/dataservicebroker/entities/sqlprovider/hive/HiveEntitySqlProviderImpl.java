@@ -51,7 +51,7 @@ public class HiveEntitySqlProviderImpl {
 		return sql.toString();
 	}
 
-	public String refreshTableBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList) {
+	public String refreshTableBulk(String tableName) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder subQuery = new StringBuilder();
 		subQuery.append("REFRESH").append(SPACE).append(tableName).append(";");
