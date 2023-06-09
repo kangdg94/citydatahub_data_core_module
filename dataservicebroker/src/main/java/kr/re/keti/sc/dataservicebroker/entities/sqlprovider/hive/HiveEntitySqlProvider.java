@@ -4,6 +4,7 @@ import java.util.List;
 
 import kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityDaoVO;
+import kr.re.keti.sc.dataservicebroker.entities.vo.EntityBulkVO;
 
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
@@ -24,7 +25,7 @@ public interface HiveEntitySqlProvider {
     void refreshTableBulk(String tableName);
 
     @InsertProvider(method = "bulkCreate")
-    void bulkCreate(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
+    void bulkCreate(String tableName, EntityBulkVO entityBulkVO);
 
     @InsertProvider(method = "create")
     void create(CommonEntityDaoVO entityDaoVO);
@@ -63,22 +64,22 @@ public interface HiveEntitySqlProvider {
     int deleteFullHist(CommonEntityDaoVO entityDaoVO);
 
     @DeleteProvider(method = "deleteBulk")
-    int deleteBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
+    int deleteBulk(EntityBulkVO entityBulkVO);
 
     @DeleteProvider(method = "deleteHistBulk")
-    int deleteHistBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
+    int deleteHistBulk(EntityBulkVO entityBulkVO);
 
     @DeleteProvider(method = "deleteFullHistBulk")
-    int deleteFullHistBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
+    int deleteFullHistBulk(EntityBulkVO entityBulkVO);
 
     @UpdateProvider(method = "deleteAttr")
     int deleteAttr(CommonEntityDaoVO entityDaoVO);
 
     @UpdateProvider(method = "createHist")
-    int createHist(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
+    int createHist(EntityBulkVO entityBulkVO);
 
     @UpdateProvider(method = "createFullHist")
-    int createFullHist(String tableName, List<DynamicEntityDaoVO> entityDaoVOList);
+    int createFullHist(EntityBulkVO entityBulkVO);
 
     @SelectProvider(method = "selectOne")
     DynamicEntityDaoVO selectOne(DbConditionVO dbConditionVO);

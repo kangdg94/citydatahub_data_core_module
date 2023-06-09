@@ -21,6 +21,7 @@ import kr.re.keti.sc.dataservicebroker.common.vo.CommonEntityDaoVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.DbConditionVO;
 import kr.re.keti.sc.dataservicebroker.common.vo.entities.DynamicEntityDaoVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelDbColumnVO;
+import kr.re.keti.sc.dataservicebroker.entities.vo.EntityBulkVO;
 import kr.re.keti.sc.dataservicebroker.util.DateUtil;
 import kr.re.keti.sc.dataservicebroker.util.StringUtil;
 
@@ -59,7 +60,7 @@ public class HiveEntitySqlProviderImpl {
 		return sql.toString();
 	}
 	
-	public String bulkCreate(String tableName, List<DynamicEntityDaoVO> entityDaoVOList) {
+	public String bulkCreate(String tableName, EntityBulkVO entityBulkVO) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder insertBuilder = new StringBuilder();
 		StringBuilder selectBuilder = new StringBuilder();
@@ -77,15 +78,15 @@ public class HiveEntitySqlProviderImpl {
 		}
 		valueBuilder.append("VALUES").append(SPACE);
 		// Build Query SELECT part, AS part
-		selectBuilder.append(selectQueryBuilder(BulkMethodType.CREATE, entityDaoVOList.get(0))); 
-		Map<String, Object> asQueryOrderResult = asQueryBuilder(BulkMethodType.CREATE, entityDaoVOList.get(0));
+		selectBuilder.append(selectQueryBuilder(BulkMethodType.CREATE, entityBulkVO)); 
+		Map<String, Object> asQueryOrderResult = asQueryBuilder(BulkMethodType.CREATE, entityBulkVO);
 		ArrayList<String> asQueryOrder = (ArrayList<String>) asQueryOrderResult.get("order");
 		asBuilder.append(asQueryOrderResult.get("query")); //OPERATION Column등 동적 파라미터 넣게
-		for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList){
+		for (DynamicEntityDaoVO entityDaoVO : entityBulkVO.getEntityDaoVOList()){
 
 			StringBuilder valueEntityBuilder = new StringBuilder();
 			valueEntityBuilder.append("(");
-			valueEntityBuilder.append(valueEntityQueryBuilder(asQueryOrder, entityDaoVO));
+			valueEntityBuilder.append(valueEntityQueryBuilder(asQueryOrder, entityDaoVO, entityBulkVO.getTableColumns()));
 			valueEntityBuilder.append("),");
 			valueBuilder.append(valueEntityBuilder);
 		}
@@ -1419,13 +1420,13 @@ public class HiveEntitySqlProviderImpl {
 	 * @param entityDaoVOList entitySchema 기반으로 파싱되어 리스트로 생성된 entityDaoVOList
 	 * @return 생성된 sql문
 	 */
-	public String deleteBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList) {
+	public String deleteBulk(EntityBulkVO entityBulkVO) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder subQuery = new StringBuilder();
 
-		subQuery.append("DELETE FROM ").append(tableName);
+		subQuery.append("DELETE FROM ").append(entityBulkVO.getTableName());
 		Boolean isFirst = true;
-		for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList){
+		for (DynamicEntityDaoVO entityDaoVO : entityBulkVO.getEntityDaoVOList()){
 			if (isFirst) {
 				subQuery.append(" WHERE ID = ");
 				subQuery.append("'");
@@ -1450,12 +1451,12 @@ public class HiveEntitySqlProviderImpl {
 	 * @param entityDaoVOList entitySchema 기반으로 파싱되어 리스트로 생성된 entityDaoVOList
 	 * @return 생성된 sql문
 	 */
-	public String deleteHistBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList) {
+	public String deleteHistBulk(EntityBulkVO entityBulkVO) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder subQuery = new StringBuilder();
-		subQuery.append("DELETE FROM ").append(StringUtil.removeSpecialCharAndLower(tableName + Constants.PARTIAL_HIST_TABLE_PREFIX));
+		subQuery.append("DELETE FROM ").append(StringUtil.removeSpecialCharAndLower(entityBulkVO.getTableName() + Constants.PARTIAL_HIST_TABLE_PREFIX));
 		Boolean isFirst = true;
-		for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList){
+		for (DynamicEntityDaoVO entityDaoVO : entityBulkVO.getEntityDaoVOList()){
 			if (isFirst) {
 				subQuery.append(" WHERE ID = ");
 				subQuery.append("'");
@@ -1480,12 +1481,12 @@ public class HiveEntitySqlProviderImpl {
 	 * @param entityDaoVOList entitySchema 기반으로 파싱되어 리스트로 생성된 entityDaoVOList
 	 * @return 생성된 sql문
 	 */
-	public String deleteFullHistBulk(String tableName, List<DynamicEntityDaoVO> entityDaoVOList) {
+	public String deleteFullHistBulk(EntityBulkVO entityBulkVO) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder subQuery = new StringBuilder();
-		subQuery.append("DELETE FROM ").append(StringUtil.removeSpecialCharAndLower(tableName + Constants.FULL_HIST_TABLE_PREFIX));
+		subQuery.append("DELETE FROM ").append(StringUtil.removeSpecialCharAndLower(entityBulkVO.getTableName() + Constants.FULL_HIST_TABLE_PREFIX));
 		Boolean isFirst = true;
-		for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList){
+		for (DynamicEntityDaoVO entityDaoVO : entityBulkVO.getEntityDaoVOList()){
 			if (isFirst) {
 				subQuery.append(" WHERE ID = ");
 				subQuery.append("'");
@@ -1553,7 +1554,7 @@ public class HiveEntitySqlProviderImpl {
 	 * @param entityDaoVO entitySchema 기반으로 파싱되어 생성된 eneityDaoVO
 	 * @return 생성된 sql문
 	 */
-	public String createHist(String tableName, List<DynamicEntityDaoVO> entityDaoVOList) {
+	public String createHist(EntityBulkVO entityBulkVO) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder insertBuilder = new StringBuilder();
 		StringBuilder selectBuilder = new StringBuilder();
@@ -1563,19 +1564,19 @@ public class HiveEntitySqlProviderImpl {
 		insertBuilder.append("INSERT INTO TABLE").append(SPACE);
 		insertBuilder
 				.append(StringUtil
-						.removeSpecialCharAndLower(tableName + Constants.PARTIAL_HIST_TABLE_PREFIX))
+						.removeSpecialCharAndLower(entityBulkVO.getTableName() + Constants.PARTIAL_HIST_TABLE_PREFIX))
 				.append(SPACE);
 		valueBuilder.append("VALUES").append(SPACE);
 		// Build Query SELECT part, AS part
-		selectBuilder.append(selectQueryBuilder(BulkMethodType.CREATE_HIST, entityDaoVOList.get(0))); 
-		Map<String, Object> asQueryOrderResult = asQueryBuilder(BulkMethodType.CREATE_HIST, entityDaoVOList.get(0));
+		selectBuilder.append(selectQueryBuilder(BulkMethodType.CREATE_HIST, entityBulkVO)); 
+		Map<String, Object> asQueryOrderResult = asQueryBuilder(BulkMethodType.CREATE_HIST, entityBulkVO);
 		ArrayList<String> asQueryOrder = (ArrayList<String>) asQueryOrderResult.get("order");
 		asBuilder.append(asQueryOrderResult.get("query")); //OPERATION Column등 동적 파라미터 넣게
-		for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList){
+		for (DynamicEntityDaoVO entityDaoVO : entityBulkVO.getEntityDaoVOList()){
 
 			StringBuilder valueEntityBuilder = new StringBuilder();
 			valueEntityBuilder.append("(");
-			valueEntityBuilder.append(valueEntityQueryBuilder(asQueryOrder, entityDaoVO));
+			valueEntityBuilder.append(valueEntityQueryBuilder(asQueryOrder, entityDaoVO, entityBulkVO.getTableColumns()));
 			valueEntityBuilder.append("),");
 			valueBuilder.append(valueEntityBuilder);
 		}
@@ -1593,7 +1594,7 @@ public class HiveEntitySqlProviderImpl {
 	 * @param entityDaoVO entitySchema 기반으로 파싱되어 생성된 eneityDaoVO
 	 * @return 생성된 sql문
 	 */
-	public String createFullHist(String tableName, List<DynamicEntityDaoVO> entityDaoVOList) {
+	public String createFullHist(EntityBulkVO entityBulkVO) {
 		StringBuilder sql = new StringBuilder();
 		StringBuilder insertBuilder = new StringBuilder();
 		StringBuilder selectBuilder = new StringBuilder();
@@ -1603,18 +1604,18 @@ public class HiveEntitySqlProviderImpl {
 		insertBuilder.append("INSERT INTO TABLE").append(SPACE);
 		insertBuilder
 				.append(StringUtil
-						.removeSpecialCharAndLower(tableName + Constants.FULL_HIST_TABLE_PREFIX))
+						.removeSpecialCharAndLower(entityBulkVO.getTableName() + Constants.FULL_HIST_TABLE_PREFIX))
 				.append(SPACE);
 		valueBuilder.append("VALUES").append(SPACE);
 		// Build Query SELECT part, AS part
-		selectBuilder.append(selectQueryBuilder(BulkMethodType.CREATE_FULL_HIST, entityDaoVOList.get(0))); 
-		Map<String, Object> asQueryOrderResult = asQueryBuilder(BulkMethodType.CREATE_HIST, entityDaoVOList.get(0));
+		selectBuilder.append(selectQueryBuilder(BulkMethodType.CREATE_FULL_HIST, entityBulkVO)); 
+		Map<String, Object> asQueryOrderResult = asQueryBuilder(BulkMethodType.CREATE_HIST, entityBulkVO);
 		ArrayList<String> asQueryOrder = (ArrayList<String>) asQueryOrderResult.get("order");
 		asBuilder.append(asQueryOrderResult.get("query"));
-		for (DynamicEntityDaoVO entityDaoVO : entityDaoVOList){
+		for (DynamicEntityDaoVO entityDaoVO : entityBulkVO.getEntityDaoVOList()){
 			StringBuilder valueEntityBuilder = new StringBuilder();
 			valueEntityBuilder.append("(");
-			valueEntityBuilder.append(valueEntityQueryBuilder(asQueryOrder, entityDaoVO));
+			valueEntityBuilder.append(valueEntityQueryBuilder(asQueryOrder, entityDaoVO, entityBulkVO.getTableColumns()));
 			valueEntityBuilder.append("),");
 			valueBuilder.append(valueEntityBuilder);
 		}
@@ -1812,12 +1813,11 @@ public class HiveEntitySqlProviderImpl {
 	}
 
 	@SuppressWarnings("unchecked")
-	private String valueEntityQueryBuilder(ArrayList<String> colOrder, DynamicEntityDaoVO entityDaoVO){
+	private String valueEntityQueryBuilder(ArrayList<String> colOrder, DynamicEntityDaoVO entityDaoVO, List<String> tableColumns){
 		StringBuilder valueEntityBuilder = new StringBuilder();
 		BulkDataTypeHandler bulkDataTypeHandler = new BulkDataTypeHandler();
 		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
 		if (dbColumnInfoVOMap != null) {
-			List<String> tableColumns = entityDaoVO.getTableColumns();
 			if (!tableColumns.contains("OPERATION")){
 				tableColumns.add("OPERATION");
 			}
@@ -1954,9 +1954,9 @@ public class HiveEntitySqlProviderImpl {
 		return valueEntityBuilder.toString();
 	}
 
-	private String selectQueryBuilder(BulkMethodType type, DynamicEntityDaoVO entityDaoVO){
+	private String selectQueryBuilder(BulkMethodType type, EntityBulkVO entityBulkVO){
 		StringBuilder selectBuilder = new StringBuilder();
-		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityDaoVO.getDbColumnInfoVOMap();
+		Map<String, DataModelDbColumnVO> dbColumnInfoVOMap = entityBulkVO.getEntityDaoVOList().get(0).getDbColumnInfoVOMap();
 		selectBuilder.append("SELECT ");
 		selectBuilder.append("ID");
 		selectBuilder.append(COMMA_WITH_SPACE);
@@ -1970,7 +1970,7 @@ public class HiveEntitySqlProviderImpl {
 			selectBuilder.append("OPERATION");
 			selectBuilder.append(COMMA_WITH_SPACE);
 		}
-		for (String tableColumn : entityDaoVO.getTableColumns()){
+		for (String tableColumn : entityBulkVO.getTableColumns()){
 			for (DataModelDbColumnVO dbColumnInfoVO : dbColumnInfoVOMap.values()){
 				String columnName = dbColumnInfoVO.getColumnName();
 				if (tableColumn.equals(columnName)){
@@ -2030,12 +2030,18 @@ public class HiveEntitySqlProviderImpl {
 		return selectBuilder.toString();
 	}
 
-	private Map<String, Object> asQueryBuilder(BulkMethodType type, DynamicEntityDaoVO entityDaoVO){
+	private Map<String, Object> asQueryBuilder(BulkMethodType type, EntityBulkVO entityBulkVO){
 		Map<String, Object> tableInfoMap = new HashMap<>();
 		ArrayList<String> tableColumns = new ArrayList<>();
 		StringBuilder asBuilder = new StringBuilder();
 		asBuilder.append(" AS (");
-		for (String column : entityDaoVO.getTableColumns()){
+		if(type.equals(BulkMethodType.CREATE_HIST) || type.equals(BulkMethodType.CREATE_FULL_HIST)){
+			if (!tableColumns.contains("OPERATION")){
+				asBuilder.append("OPERATION").append(COMMA_WITH_SPACE);
+				tableColumns.add("OPERATION");
+			}
+		}
+		for (String column : entityBulkVO.getTableColumns()){
 			asBuilder.append(column).append(COMMA_WITH_SPACE);
 			tableColumns.add(column);
 		}
