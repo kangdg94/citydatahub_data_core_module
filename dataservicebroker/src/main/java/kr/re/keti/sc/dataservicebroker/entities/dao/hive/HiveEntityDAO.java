@@ -38,8 +38,10 @@ import kr.re.keti.sc.dataservicebroker.datamodel.vo.DataModelStorageMetadataVO;
 import kr.re.keti.sc.dataservicebroker.datamodel.vo.ObjectMember;
 import kr.re.keti.sc.dataservicebroker.datasetflow.vo.DatasetFlowBaseVO;
 import kr.re.keti.sc.dataservicebroker.entities.dao.EntityDAOInterface;
+import kr.re.keti.sc.dataservicebroker.entities.service.EntityDataModelSVC;
 import kr.re.keti.sc.dataservicebroker.entities.sqlprovider.hive.HiveEntitySqlProvider;
 import kr.re.keti.sc.dataservicebroker.entities.vo.EntityBulkVO;
+import kr.re.keti.sc.dataservicebroker.entities.vo.EntityDataModelVO;
 import kr.re.keti.sc.dataservicebroker.util.QueryUtil;
 import kr.re.keti.sc.dataservicebroker.util.StringUtil;
 import kr.re.keti.sc.dataservicebroker.util.ValidateUtil;
@@ -60,6 +62,8 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
     @Autowired
     private DataModelManager dataModelManager;
+    @Autowired
+    private EntityDataModelSVC entityDataModelSVC;
 
     @Value("${entity.history.retrieve.full.yn:N}")
     public String retrieveFullHistoryYn;    //Entity 전체 이력 조회 여부
@@ -609,7 +613,12 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         }
         for (int i = 0; i < daoVOList.size(); i++) {
             ProcessResultVO processResultVO = new ProcessResultVO();
-            processResultVO.setProcessOperation(Operation.CREATE_ENTITY_OR_REPLACE_ENTITY_ATTRIBUTES);
+           EntityDataModelVO res = entityDataModelSVC.getEntityDataModelVOById(daoVOList.get(i).getId());
+           if (res != null) {
+               processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
+           } else {
+                processResultVO.setProcessOperation(Operation.CREATE_ENTITY);
+           }
             processResultVO.setProcessResult(true); // 임시
             processResultVOList.add(processResultVO);
          }
@@ -704,7 +713,12 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
        for (int i = 0; i < fullUpsertList.size(); i++) {
            ProcessResultVO processResultVO = new ProcessResultVO();
-           processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
+           EntityDataModelVO res = entityDataModelSVC.getEntityDataModelVOById(fullUpsertList.get(i).getId());
+           if (res != null) {
+               processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
+           } else {
+                processResultVO.setProcessOperation(Operation.CREATE_ENTITY);
+           }
            processResultVO.setProcessResult(true);
            processResultVOList.add(processResultVO);
            logger.debug("bulkFullUpsert. id=" + fullUpsertList.get(i).getId() + ", processResultVO=" + processResultVO);

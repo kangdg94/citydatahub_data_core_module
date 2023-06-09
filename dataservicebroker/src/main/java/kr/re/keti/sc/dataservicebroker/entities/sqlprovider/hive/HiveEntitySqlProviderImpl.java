@@ -1922,8 +1922,14 @@ public class HiveEntitySqlProviderImpl {
 											if(dbColumnInfoVO.getColumnType().equals(DbColumnType.INTEGER) || dbColumnInfoVO.getColumnType().equals(DbColumnType.BOOLEAN) || dbColumnInfoVO.getColumnType().equals(DbColumnType.FLOAT)){
 												valueEntityBuilder.append(inputValue);
 											} else {
-												if(inputValue.equals(null)){
+												if(inputValue.equals(null)){ // inputvalue가 이미 Null인데 당연히 Exception 나지..
+													if(dbColumnInfoVO.getColumnType().equals(DbColumnType.GEOMETRY_4326) || dbColumnInfoVO.getColumnType().equals(DbColumnType.GEOMETRY_3857)){
+														valueEntityBuilder.append("'");
+														valueEntityBuilder.append(inputValue);
+														valueEntityBuilder.append("'");
+													} else {
 													valueEntityBuilder.append(inputValue);
+													}
 												}else{
 													valueEntityBuilder.append("'");
 													valueEntityBuilder.append(inputValue);
@@ -1981,41 +1987,61 @@ public class HiveEntitySqlProviderImpl {
 						// selectBuilder.append(")");
 						selectBuilder.append(COMMA_WITH_SPACE);
 					} else if (dbColumnType == DbColumnType.ARRAY_INTEGER){
+						// selectBuilder.append("NVL2(").append(columnName).append(", ");
 						selectBuilder.append("ST_ARRAYINT(");
 						selectBuilder.append(columnName);
 						selectBuilder.append(")");
+						// selectBuilder.append(", ").append(columnName).append(")");
 						selectBuilder.append(COMMA_WITH_SPACE);
 					} else if (dbColumnType == DbColumnType.ARRAY_FLOAT){
+						// selectBuilder.append("NVL2(").append(columnName).append(", ");
 						selectBuilder.append("ST_ARRAYDOUBLE(");
 						selectBuilder.append(columnName);
 						selectBuilder.append(")");
+						// selectBuilder.append(", ").append(columnName).append(")");
 						selectBuilder.append(COMMA_WITH_SPACE);
 					} else if (dbColumnType == DbColumnType.ARRAY_TIMESTAMP){
+						// selectBuilder.append("NVL2(").append(columnName).append(", ");
 						selectBuilder.append("ST_ARRAYTIMESTAMP(");
 						selectBuilder.append(columnName);
 						selectBuilder.append(")");
+						// selectBuilder.append(", ").append(columnName).append(")");
 						selectBuilder.append(COMMA_WITH_SPACE);
 					} else if (dbColumnType == DbColumnType.ARRAY_BOOLEAN){
+						// selectBuilder.append("NVL2(").append(columnName).append(", ");
 						selectBuilder.append("ST_ARRAYBOOLEAN(");
 						selectBuilder.append(columnName);
 						selectBuilder.append(")");
+						// selectBuilder.append(", ").append(columnName).append(")");
 						selectBuilder.append(COMMA_WITH_SPACE);
 					}  else if (dbColumnType == DbColumnType.GEOMETRY_4326){
 						if (tableColumn.equalsIgnoreCase(columnName + "_idx")){ // 확인 필요.
-							selectBuilder.append("ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(");
+							selectBuilder.append("NVL2(");
 							selectBuilder.append(columnName);
-							selectBuilder.append(")))");
+							selectBuilder.append(", ST_DISKINDEX(ST_asText(ST_GeomFromGeoJSON(");
+							selectBuilder.append(columnName);
+							selectBuilder.append("))), ");
+							selectBuilder.append(columnName);
+							selectBuilder.append(")");
 							selectBuilder.append(COMMA_WITH_SPACE);
 						} else {
-							selectBuilder.append("ST_AsGeoJson(ST_GeomFromGeoJSON(");
+							selectBuilder.append("NVL2(");
 							selectBuilder.append(columnName);
-							selectBuilder.append("))");
+							selectBuilder.append(", ST_AsGeoJson(ST_GeomFromGeoJSON(");
+							selectBuilder.append(columnName);
+							selectBuilder.append(")), ");
+							selectBuilder.append(columnName);
+							selectBuilder.append(")");
 							selectBuilder.append(COMMA_WITH_SPACE);
 						}
 					} else if (dbColumnType == DbColumnType.GEOMETRY_3857){
-						selectBuilder.append("ST_AsGeoJson(ST_Transform(ST_FlipCoordinates(ST_GeomFromGeoJSON(");
+						selectBuilder.append("NVL2(");
 						selectBuilder.append(columnName);
-						selectBuilder.append(")), 'epsg:4326','epsg:3857'))");
+						selectBuilder.append(", ST_AsGeoJson(ST_Transform(ST_FlipCoordinates(ST_GeomFromGeoJSON(");
+						selectBuilder.append(columnName);
+						selectBuilder.append(")), 'epsg:4326','epsg:3857')), ");
+						selectBuilder.append(columnName);
+						selectBuilder.append(")");
 						selectBuilder.append(COMMA_WITH_SPACE);
 					} else {
 						selectBuilder.append(columnName);
