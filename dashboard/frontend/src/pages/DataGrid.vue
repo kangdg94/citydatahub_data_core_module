@@ -318,9 +318,9 @@ export default {
       dateTime: '',
       dateSelected2: null,
       dateOptions2: [
-        { value: null, text: this.$i18n.t('message.selectOption'), disabled: true },
-        { value: 'normalizedHistory', text: this.$i18n.t('search.normalizedHistory') },
-        { value: 'temporalValues', text: this.$i18n.t('search.temporalValues') }
+        { text: this.$i18n.t('message.selectOption'), disabled: true },
+        { value: null, text: this.$i18n.t('search.temporalValues') },
+        { value: 'normalizedHistory', text: this.$i18n.t('search.normalizedHistory') }
       ],
     }
   },
@@ -574,6 +574,7 @@ export default {
         this.$alert(this.$i18n.t('message.selectDataModels'), '', {
           confirmButtonText: this.$i18n.t('comm.ok')
         });
+        this.isBtnLoading = false;
         return null;
       }
       // The structure of making search terms.
@@ -659,8 +660,9 @@ export default {
       let params = this.searchData;
       if (type) {
         params.options = this.dateSelected2;
-        params.time = this.dateSelected2 === 'between' ? this.dateTime[0] : this.dateTime;
-        params.endtime = this.dateSelected2 === 'between' ? this.dateTime[1] : null
+        params.timerel = this.dateSelected;
+        params.time = this.dateSelected === 'between' ? this.dateTime[0] : this.dateTime;
+        params.endtime = this.dateSelected === 'between' ? this.dateTime[1] : null
       }
       // console.log(this.searchData);
       // console.log(JSON.stringify(this.searchData));

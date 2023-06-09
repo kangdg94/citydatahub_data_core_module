@@ -19,12 +19,11 @@
 
 package org.apache.hive.service.server;
 
-import org.apache.hadoop.hive.metastore.RawStore;
-import org.apache.hive.service.server.ThreadWithGarbageCleanup;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
+
+import org.apache.hadoop.hive.metastore.RawStore;
 
 /**
  * A ThreadFactory for constructing new HiveServer2 threads that lets you plug

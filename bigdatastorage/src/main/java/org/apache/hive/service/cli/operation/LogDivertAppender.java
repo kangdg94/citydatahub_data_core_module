@@ -17,27 +17,30 @@
  */
 
 package org.apache.hive.service.cli.operation;
+import java.io.CharArrayWriter;
+import java.util.Enumeration;
+import java.util.regex.Pattern;
 
-import com.google.common.base.Joiner;
 import org.apache.hadoop.hive.ql.exec.Task;
 import org.apache.hadoop.hive.ql.log.PerfLogger;
 import org.apache.hadoop.hive.ql.session.OperationLog;
 import org.apache.hadoop.hive.ql.session.OperationLog.LoggingLevel;
 import org.apache.hive.service.cli.CLIServiceUtils;
-import org.apache.hive.service.cli.operation.OperationManager;
-import org.apache.log4j.*;
+import org.apache.log4j.Appender;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Layout;
+import org.apache.log4j.Logger;
+import org.apache.log4j.WriterAppender;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
-import java.io.CharArrayWriter;
-import java.util.Enumeration;
-import java.util.regex.Pattern;
+import com.google.common.base.Joiner;
 
 /**
  * An Appender to divert logs from individual threads to the LogObject they belong to.
  */
 public class LogDivertAppender extends WriterAppender {
-  private static final Logger LOG = Logger.getLogger(org.apache.hive.service.cli.operation.LogDivertAppender.class.getName());
+  private static final Logger LOG = Logger.getLogger(LogDivertAppender.class.getName());
   private final OperationManager operationManager;
   private boolean isVerbose;
   private Layout verboseLayout;

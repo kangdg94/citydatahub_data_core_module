@@ -35,10 +35,10 @@ public enum SaslQOP {
 
   public final String saslQop;
 
-  private static final Map<String, org.apache.hive.service.auth.SaslQOP> STR_TO_ENUM = new HashMap<String, org.apache.hive.service.auth.SaslQOP>();
+  private static final Map<String, SaslQOP> STR_TO_ENUM = new HashMap<String, SaslQOP>();
 
   static {
-    for (org.apache.hive.service.auth.SaslQOP saslQop : values()) {
+    for (SaslQOP saslQop : values()) {
       STR_TO_ENUM.put(saslQop.toString(), saslQop);
     }
   }
@@ -51,11 +51,11 @@ public enum SaslQOP {
     return saslQop;
   }
 
-  public static org.apache.hive.service.auth.SaslQOP fromString(String str) {
+  public static SaslQOP fromString(String str) {
     if (str != null) {
       str = str.toLowerCase(Locale.ROOT);
     }
-    org.apache.hive.service.auth.SaslQOP saslQOP = STR_TO_ENUM.get(str);
+    SaslQOP saslQOP = STR_TO_ENUM.get(str);
     if (saslQOP == null) {
       throw new IllegalArgumentException(
         "Unknown auth type: " + str + " Allowed values are: " + STR_TO_ENUM.keySet());

@@ -37,7 +37,7 @@ public class DataLifeCycleProcessor {
 	private DataModelManager dataModelManager;
     @Autowired
     private DatasetFlowRetrieveSVC datasetFlowRetrieveSVC;
-    @Autowired
+    @Autowired(required = false)
     private HiveTableDatalifeDAO hiveTableDAO;
 
 

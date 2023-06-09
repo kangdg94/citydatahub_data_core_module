@@ -17,11 +17,10 @@
  */
 package org.apache.hive.service.auth;
 
+import javax.security.sasl.AuthenticationException;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.hive.service.auth.PasswdAuthenticationProvider;
-
-import javax.security.sasl.AuthenticationException;
 
 /**
  * This authentication provider implements the {@code CUSTOM} authentication. It allows a {@link

@@ -77,7 +77,12 @@
     "notSupportStringType": "해당 차트 유형에서는 String 타입의 차트 값을 선택할 수 없습니다.",
     "onlySupportNumberType": "해당 차트 유형에서는 Number 타입의 x, y축만 선택할 수 있습니다.",
     "selectXandYaxis": "x축, y축 모두 설정해주세요.",
-    "selectTimeAndRel": "시간 조건/일시를 선택해주세요."
+    "selectTimeAndRel": "시간 조건/일시를 선택해주세요.",
+    "onlySupportIntegerType": "해당 차트 유형에서는 Integer 타입의 차트 값만 선택할 수 있습니다.",
+    "notSupportType": "해당 차트 유형에서 지원하지 않는 값입니다.",
+    "selectOptionEntity": "값를 선택해주세요. [Ctrl + F]로 검색이 가능합니다.",
+    "MaximumNumberOfEntities": "한 위젯에서 사용할 수 있는 엔티티의 최대 개수는 10개입니다.",
+    "MaximumLengthOfEntities": "적용 가능한 엔티티의 최대 문자 수는 1000자입니다."
   },
   "search": {
     "subscribe": "구독",

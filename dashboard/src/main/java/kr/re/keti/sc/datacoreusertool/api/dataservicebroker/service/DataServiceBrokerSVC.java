@@ -640,19 +640,19 @@ public class DataServiceBrokerSVC {
 					
 					if(responseEntity != null && !ValidateUtil.isEmptyData(responseEntity.getBody())) {
 						try {
-							String createdAt = null;
+							String modifiedAt = null;
 							for(CommonEntityVO commonEntityVO : responseEntity.getBody().getCommonEntityVOs()) {								
-								if(createdAt == null) {
-									createdAt = commonEntityVO.getCreatedAt();
+								if(modifiedAt == null) {
+									modifiedAt = commonEntityVO.getModifiedAt();
 								} else {
-									if(createdAt.compareTo(commonEntityVO.getCreatedAt()) > 0) {
-										createdAt = commonEntityVO.getCreatedAt();
+									if(modifiedAt.compareTo(commonEntityVO.getModifiedAt()) > 0) {
+										modifiedAt = commonEntityVO.getModifiedAt();
 									}
 								}
 							}
 							
-							if(createdAt != null) {
-								date = DateUtil.strToDate(createdAt);
+							if(modifiedAt != null) {
+								date = DateUtil.strToDate(modifiedAt);
 							}
 						} catch (ParseException e) {
 							log.warn("Fail to get the last modifiedAt.", e);
@@ -666,8 +666,8 @@ public class DataServiceBrokerSVC {
 					if(responseEntity != null && !ValidateUtil.isEmptyData(responseEntity.getBody())) {
 						try {
 							CommonEntityVO commonEntityVO = responseEntity.getBody();
-							String createdAt = commonEntityVO.getCreatedAt().toString();
-							date = DateUtil.strToDate(createdAt);
+							String modifiedAt = commonEntityVO.getModifiedAt().toString();
+							date = DateUtil.strToDate(modifiedAt);
 						} catch (ParseException e) {
 							log.warn("Fail to get the last modifiedAt.", e);
 						}
@@ -691,25 +691,23 @@ public class DataServiceBrokerSVC {
 	private void addSearchValue(EntityRetrieveVO entityRetrieveVO, Map<String, Object> params) {
 		DataModelVO dataModelVO = dataModelSVC.getDataModelbyId(entityRetrieveVO.getDataModelId()).getBody();
 		Map<String, String> attrsType = new LinkedHashMap<String, String>();
-		String q = null;
+		String q = "";
 		
 		if (!ValidateUtil.isEmptyData(dataModelVO)) {
 			List<Attribute> attributes = dataModelVO.getAttributes();
 			
 			getAttrsType(null, attributes, attrsType);
-			
-			// id matches by default (id does not support pattern search)
-			q = "id==\"" + entityRetrieveVO.getSearchValue() + "\"";
-			
+
 			for(String key : attrsType.keySet()) {
 				// Only when Attribute value type is String or ArrayString Search like before and after as a search term 
 				if(AttributeValueType.STRING.name().equals(attrsType.get(key)) 
 						|| AttributeValueType.ARRAY_STRING.name().equals(attrsType.get(key))) {
-					q += "|" + key + "~=\"" + entityRetrieveVO.getSearchValue() + "\"";
+					if (!ValidateUtil.isEmptyData(q)) q += "|";
+					q += key + "~=\"" + entityRetrieveVO.getSearchValue() + "\"";
 				}
 			}
-			
-			if(q != null) {
+
+			if(!ValidateUtil.isEmptyData(q)) {
 				params.put(FILTER_CONDITION_Q, q);
 			}
 		}
@@ -816,11 +814,19 @@ public class DataServiceBrokerSVC {
 		
 		for(Attribute attribute : attributes) {
 			if(!ValidateUtil.isEmptyData(attribute.getChildAttributes())) {
-				getAttrsType(attribute.getName(), attribute.getChildAttributes(), attrsType);
+				if(parentAttrName != null) {
+					getAttrsType(parentAttrName + ATTRIBUTE_SEPARATOR + attribute.getName(), attribute.getChildAttributes(), attrsType);
+				} else {
+					getAttrsType(attribute.getName(), attribute.getChildAttributes(), attrsType);
+				}
 			}
 			
 			if(!ValidateUtil.isEmptyData(attribute.getObjectMembers())) {
-				getObjectMemberType(attribute.getName(), attribute.getObjectMembers(), attrsType);
+				if(parentAttrName != null) {
+					getObjectMemberType(parentAttrName + ATTRIBUTE_SEPARATOR + attribute.getName(), attribute.getObjectMembers(), attrsType);
+				} else {
+					getObjectMemberType(attribute.getName(), attribute.getObjectMembers(), attrsType);
+				}
 			}
 			
 			if(attribute.getName() == null || attribute.getValueType() == null) {

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.UncategorizedSQLException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import kr.re.keti.sc.dataservicebroker.common.code.Constants;
@@ -64,7 +65,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     @Autowired
     private DataModelManager dataModelManager;
 
-    @Value("${entity.history.retrive.full.yn:N}")
+    @Value("${entity.history.retrieve.full.yn:N}")
     public String retrieveFullHistoryYn;    //Entity 전체 이력 조회 여부
     
     @Value("${entity.retrieve.default.limit:1000}")
@@ -135,6 +136,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
         entityDaoVO.setTableColumns(tableColumns);
         mapper.create(entityDaoVO);
+        //mapper.replaceAttr(entityDaoVO);//중복데이터 적재 방지
 
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
@@ -287,7 +289,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.UPDATE_ENTITY_ATTRIBUTES);
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             processResultVO.setProcessResult(true);
         } else {
             processResultVO.setProcessResult(false);
@@ -361,7 +363,8 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         int result;
 
         try {
-            result = mapper.partialAttrUpdate(entityDaoVO);
+                // result = mapper.partialAttrUpdate(entityDaoVO);
+                result = mapper.appendAttr(entityDaoVO);
         } catch (UncategorizedSQLException e) {
             result = concurrentCheckAndExecuteThread(entityDaoVO, mapper, "PARTIAL_ATTR_UPDATE", e);
         }
@@ -371,7 +374,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.PARTIAL_ATTRIBUTE_UPDATE);
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             processResultVO.setProcessResult(true);
         } else {
             processResultVO.setProcessResult(false);
@@ -448,6 +451,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         try {
             result = mapper.appendAttr(entityDaoVO);
+            // result = mapper.replaceAttr(entityDaoVO);
         } catch (UncategorizedSQLException e) {
             result = concurrentCheckAndExecuteThread(entityDaoVO, mapper, "APPEND_ATTR", e);
         }
@@ -456,7 +460,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.APPEND_ENTITY_ATTRIBUTES);
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             processResultVO.setProcessResult(true);
         } else {
             processResultVO.setProcessResult(false);
@@ -544,7 +548,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.APPEND_ENTITY_ATTRIBUTES);
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             processResultVO.setProcessResult(true);
         } else {
             processResultVO.setProcessResult(false);
@@ -641,7 +645,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.REPLACE_ENTITY_ATTRIBUTES);
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             processResultVO.setProcessResult(true);
         } else {
             processResultVO.setProcessResult(false);
@@ -736,20 +740,12 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         try {
             if (rowCount > 0) { // 기존 Row가 있으면 Update //hive hbase 상관없이 update 같은 쿼리문
-                // if (isUsingHBase(entityDaoVO.getDatasetId())) {
-                //     logger.debug("Using HBase An existing row exists. Update Process Execute...");
-
-                //     mapper.replaceAttrHBase(entityDaoVO);
-                // } else {
-                //     logger.debug("Using Hive An existing row exists. Update Process Execute...");
-
                 mapper.replaceAttr(entityDaoVO);
-                //}
             } else {
                 logger.debug("The existing row does not exist. Insert Process Execute...");
-
                 processResultVO.setProcessOperation(Operation.CREATE_ENTITY);
-                mapper.create(entityDaoVO);
+                mapper.replaceAttr(entityDaoVO);
+                //mapper.create(entityDaoVO);
             }
         } catch (UncategorizedSQLException e) {
             String executeType = isUsingHBase(entityDaoVO.getDatasetId()) ? "REPLACE_ATTR_HBASE" : "REPLACE_ATTR";
@@ -855,7 +851,8 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 
         if (result < 1) {
             processResultVO.setProcessOperation(Operation.CREATE_ENTITY);
-            mapper.create(entityDaoVO);
+            //mapper.create(entityDaoVO);
+            mapper.replaceAttr(entityDaoVO); //중복 data적재 방지
             mapper.refreshTable(entityDaoVO);
         }
 
@@ -939,7 +936,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
             result = concurrentCheckAndExecuteThread(entityDaoVO, mapper, "DELETE", e);
         }
 
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             HiveEntitySqlProvider batchMapper = batchSqlSession.getMapper(HiveEntitySqlProvider.class);
             if (DataServiceBrokerCode.UseYn.YES.getCode().equals(deleteEntityHistoryYn)) {
                 batchMapper.deleteHist(entityDaoVO);
@@ -955,7 +952,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.DELETE_ENTITY);
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             processResultVO.setProcessResult(true);
         } else {
             processResultVO.setProcessResult(false);
@@ -986,7 +983,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
 		// 결과 생성
 		ProcessResultVO processResultVO = new ProcessResultVO();
 		processResultVO.setProcessOperation(Operation.DELETE_ENTITY_ATTRIBUTES);
-		if(result > 0) {
+		if(result > 0 || result == -1) {
 			processResultVO.setProcessResult(true);
 		} else {
 			processResultVO.setProcessResult(false);
@@ -1006,7 +1003,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         ArrayList<Integer> resultList = new ArrayList<>(histList.size());
         for (DynamicEntityDaoVO entityDaoVO : histList) {
             HiveEntitySqlProvider batchMapper = batchSqlSession.getMapper(HiveEntitySqlProvider.class);
-            List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
+            List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName() + "partialhist");
             entityDaoVO.setTableColumns(tableColumns);
             int result = batchMapper.createHist(entityDaoVO);
             batchMapper.refreshTable(entityDaoVO);
@@ -1020,7 +1017,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         ArrayList<Integer> resultList = new ArrayList<>(histList.size());
         for (DynamicEntityDaoVO entityDaoVO : histList) {
             HiveEntitySqlProvider batchMapper = batchSqlSession.getMapper(HiveEntitySqlProvider.class);
-            List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName());
+            List<String> tableColumns = hiveTableSVC.getTableScheme(entityDaoVO.getDbTableName() + "fullhist");
             entityDaoVO.setTableColumns(tableColumns);
             int result = batchMapper.createFullHist(entityDaoVO);
             batchMapper.refreshTable(entityDaoVO);
@@ -1040,7 +1037,7 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         // 결과 생성
         ProcessResultVO processResultVO = new ProcessResultVO();
         processResultVO.setProcessOperation(Operation.APPEND_ENTITY_ATTRIBUTES);
-        if (result > 0) {
+        if (result > 0 || result == -1) {
             processResultVO.setProcessResult(true);
         } else {
             processResultVO.setProcessResult(false);
@@ -1083,7 +1080,8 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
         dbConditionVO.setId(queryVO.getId());
 
         HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
-        List<DynamicEntityDaoVO> entityDaoVOs = (List<DynamicEntityDaoVO>) mapper.selectHistList(dbConditionVO);
+        //List<DynamicEntityDaoVO> entityDaoVOs = (List<DynamicEntityDaoVO>) mapper.selectHistList(dbConditionVO);\
+        List<DynamicEntityDaoVO> entityDaoVOs = mapper.selectHistList(dbConditionVO);
 
 
         return entityDaoVOs;
@@ -1102,7 +1100,13 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
     
     @Override
 	public Integer selectCount(QueryVO queryVO) {
-    	throw new UnsupportedOperationException("HiveDAO not supported 'selectCount'");
+        DbConditionVO dbConditionVO = setQueryCondition(queryVO, true);
+
+
+    	HiveEntitySqlProvider mapper = sqlSession.getMapper(HiveEntitySqlProvider.class);
+        Integer result  = mapper.selectCount(dbConditionVO);
+
+        return result;
 	}
 
 	@Override
@@ -1312,8 +1316,11 @@ public class HiveEntityDAO implements EntityDAOInterface<DynamicEntityDaoVO> {
                                 targetColumnList.add( 
                                 "concat_ws(',', ".concat(columnName.concat(") AS ").concat(columnName) )); 
                             }
+                            else{
+                                targetColumnList.add(columnName);        
+                            }
                     }
-                        targetColumnList.add(columnName);
+                        //targetColumnList.add(columnName);
                 }
             }
         if (isTemproal) {

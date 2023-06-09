@@ -30,8 +30,8 @@ import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.internal.config.UI.UI_ENABLED
 import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd, SparkListenerJobStart}
-import org.apache.spark.sql.GeohikerSqlSupport
-import org.apache.spark.sql.hive.{HiveContext, HiveUtils}
+import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.hive.HiveUtils
 import org.apache.spark.sql.hive.thriftserver.GeohikerReflectionUtils._
 import org.apache.spark.sql.hive.thriftserver.ui.GeohikerThriftServerTab
 import org.apache.spark.sql.internal.SQLConf
@@ -50,20 +50,18 @@ object GeohikerThriftServer extends Logging {
    * Starts a new thrift server with the given context.
    */
   @DeveloperApi
-  def startWithContext(hiveContext: HiveContext): Unit = {
-    GeohikerSqlSupport.init(hiveContext)
-
-    val server = new GeohikerThriftServer(hiveContext)
+  def startWithContext(sqlContext: SQLContext): Unit = {
+    val server = new GeohikerThriftServer(sqlContext)
 
     val executionHive = HiveUtils.newClientForExecution(
-      hiveContext.sparkContext.conf,
-      hiveContext.sessionState.newHadoopConf())
+      sqlContext.sparkContext.conf,
+      sqlContext.sessionState.newHadoopConf())
     server.init(executionHive.conf)
     server.start()
-    listener = new GeohikerThriftServerListener(server, hiveContext.conf)
-    hiveContext.sparkContext.addSparkListener(listener)
-    uiTab = if (hiveContext.sparkContext.getConf.get(UI_ENABLED)) {
-      Some(new GeohikerThriftServerTab(hiveContext.sparkContext))
+    listener = new GeohikerThriftServerListener(server, sqlContext.conf)
+    sqlContext.sparkContext.addSparkListener(listener)
+    uiTab = if (sqlContext.sparkContext.getConf.get(UI_ENABLED)) {
+      Some(new GeohikerThriftServerTab(sqlContext.sparkContext))
     } else {
       None
     }
@@ -90,15 +88,15 @@ object GeohikerThriftServer extends Logging {
     }
 
     val executionHive = HiveUtils.newClientForExecution(
-      GeohikerSparkSQLEnv.hiveContext.sparkContext.conf,
-      GeohikerSparkSQLEnv.hiveContext.sessionState.newHadoopConf())
+      GeohikerSparkSQLEnv.sqlContext.sparkContext.conf,
+      GeohikerSparkSQLEnv.sqlContext.sessionState.newHadoopConf())
 
     try {
-      val server = new GeohikerThriftServer(GeohikerSparkSQLEnv.hiveContext)
+      val server = new GeohikerThriftServer(GeohikerSparkSQLEnv.sqlContext)
       server.init(executionHive.conf)
       server.start()
       logInfo("GeohikerThriftServer started")
-      listener = new GeohikerThriftServerListener(server, GeohikerSparkSQLEnv.hiveContext.conf)
+      listener = new GeohikerThriftServerListener(server, GeohikerSparkSQLEnv.sqlContext.conf)
       GeohikerSparkSQLEnv.sparkContext.addSparkListener(listener)
       uiTab = if (GeohikerSparkSQLEnv.sparkContext.getConf.get(UI_ENABLED)) {
         Some(new GeohikerThriftServerTab(GeohikerSparkSQLEnv.sparkContext))
@@ -279,7 +277,7 @@ object GeohikerThriftServer extends Logging {
   }
 }
 
-private[hive] class GeohikerThriftServer(hiveContext: HiveContext)
+private[hive] class GeohikerThriftServer(sqlContext: SQLContext)
   extends HiveServer2
     with GeohikerReflectedCompositeService {
   // state is tracked internally so that the server only attempts to shut down if it successfully
@@ -287,7 +285,7 @@ private[hive] class GeohikerThriftServer(hiveContext: HiveContext)
   private val started = new AtomicBoolean(false)
 
   override def init(hiveConf: HiveConf) {
-    val sparkSqlCliService = new GeohikerSparkSQLCLIService(this, hiveContext)
+    val sparkSqlCliService = new GeohikerSparkSQLCLIService(this, sqlContext)
     setSuperField(this, "cliService", sparkSqlCliService)
     addService(sparkSqlCliService)
 

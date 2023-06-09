@@ -160,7 +160,7 @@ private[hive] object GeohikerSparkSQLCLIDriver extends Logging {
     // Spark's SessionResourceLoader to obtain these jars.
     val auxJars = HiveConf.getVar(conf, HiveConf.ConfVars.HIVEAUXJARS)
     if (StringUtils.isNotBlank(auxJars)) {
-      val resourceLoader = GeohikerSparkSQLEnv.hiveContext.sessionState.resourceLoader
+      val resourceLoader = GeohikerSparkSQLEnv.sqlContext.sessionState.resourceLoader
       StringUtils.split(auxJars, ",").foreach(resourceLoader.addJar(_))
     }
 
@@ -171,7 +171,7 @@ private[hive] object GeohikerSparkSQLCLIDriver extends Logging {
     // Thus we can load all jars passed by --jars and AddJarCommand.
     sessionState.getConf.setClassLoader(SparkSQLEnv.sqlContext.sharedState.jarClassLoader)
 
-    // TODO work around for set the log output to console, because the HiveContext
+    // TODO work around for set the log output to console, because the SQLContext
     // will set the output into an invalid buffer.
     sessionState.in = System.in
     try {
@@ -183,7 +183,7 @@ private[hive] object GeohikerSparkSQLCLIDriver extends Logging {
     }
 
     if (sessionState.database != null) {
-      GeohikerSparkSQLEnv.hiveContext.sessionState.catalog.setCurrentDatabase(
+      GeohikerSparkSQLEnv.sqlContext.sessionState.catalog.setCurrentDatabase(
         s"${sessionState.database}")
     }
 
@@ -194,7 +194,7 @@ private[hive] object GeohikerSparkSQLCLIDriver extends Logging {
     // [[SharedState.loadHiveConfFile]] based on the user specified or default values of
     // spark.sql.warehouse.dir and hive.metastore.warehouse.dir.
     for ((k, v) <- newHiveConf if k != "hive.metastore.warehouse.dir") {
-      GeohikerSparkSQLEnv.hiveContext.setConf(k, v)
+      GeohikerSparkSQLEnv.sqlContext.setConf(k, v)
     }
 
     if (sessionState.execString != null) {
@@ -328,7 +328,7 @@ private[hive] class GeohikerSparkSQLCLIDriver extends CliDriver with Logging {
   }
 
   override def setHiveVariables(hiveVariables: java.util.Map[String, String]): Unit = {
-    hiveVariables.asScala.foreach(kv => GeohikerSparkSQLEnv.hiveContext.conf.setConfString(kv._1, kv._2))
+    hiveVariables.asScala.foreach(kv => GeohikerSparkSQLEnv.sqlContext.conf.setConfString(kv._1, kv._2))
   }
 
   def printMasterAndAppId(): Unit = {

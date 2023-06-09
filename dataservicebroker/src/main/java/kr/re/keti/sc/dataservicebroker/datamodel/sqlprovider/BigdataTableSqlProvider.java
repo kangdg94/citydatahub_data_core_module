@@ -154,6 +154,8 @@ public class BigdataTableSqlProvider {
       .append(LINE_SEPARATOR)
       .append(COMMA_WITH_SPACE)
       .append("MODIFIED_AT TIMESTAMP")
+      .append(LINE_SEPARATOR)
+      .append(", OPERATION VARCHAR(40) NOT NULL ")
       .append(LINE_SEPARATOR);
 
     generateDynamicColumnSql(
@@ -205,6 +207,8 @@ public class BigdataTableSqlProvider {
       .append(LINE_SEPARATOR)
       .append(COMMA_WITH_SPACE)
       .append("MODIFIED_AT TIMESTAMP")
+      .append(LINE_SEPARATOR)
+      .append(", OPERATION VARCHAR(40) NOT NULL ")
       .append(LINE_SEPARATOR);
 
     generateDynamicColumnSql(
@@ -249,6 +253,15 @@ public class BigdataTableSqlProvider {
 
     String entityTableName = dataModelManager.generateHiveTableName(id);
     sql
+      .append("DELETE FROM ")
+      .append(entityTableName)
+      .append(";")
+      .append(LINE_SEPARATOR)
+      .append(LINE_SEPARATOR);
+
+    sql.append(" FORSPLIT ");
+
+    sql
       .append("DROP TABLE IF EXISTS ")
       .append(entityTableName)
       .append(";")
@@ -262,6 +275,15 @@ public class BigdataTableSqlProvider {
       Constants.PARTIAL_HIST_TABLE_PREFIX
     );
     sql
+      .append("DELETE FROM ")
+      .append(entityPartialHistTableName)
+      .append(";")
+      .append(LINE_SEPARATOR)
+      .append(LINE_SEPARATOR);
+
+    sql.append(" FORSPLIT ");
+    
+    sql
       .append("DROP TABLE IF EXISTS ")
       .append(entityPartialHistTableName)
       .append(";")
@@ -274,6 +296,15 @@ public class BigdataTableSqlProvider {
       id,
       Constants.FULL_HIST_TABLE_PREFIX
     );
+    sql
+      .append("DELETE FROM ")
+      .append(entityFullHistTableName)
+      .append(";")
+      .append(LINE_SEPARATOR)
+      .append(LINE_SEPARATOR);
+
+    sql.append(" FORSPLIT ");
+    
     sql
       .append("DROP TABLE IF EXISTS ")
       .append(entityFullHistTableName)

@@ -19,9 +19,7 @@ package org.apache.spark.sql.hive.thriftserver
 
 import java.io.IOException
 import java.util.{List => JList}
-
 import javax.security.auth.login.LoginException
-
 import scala.collection.JavaConverters._
 import org.apache.commons.logging.Log
 import org.apache.hadoop.hive.conf.HiveConf
@@ -33,18 +31,19 @@ import org.apache.hive.service.Service.STATE
 import org.apache.hive.service.auth.HiveAuthFactory
 import org.apache.hive.service.cli._
 import org.apache.hive.service.server.HiveServer2
+import org.apache.spark.sql.SQLContext
 import org.slf4j.Logger
-import org.apache.spark.sql.hive.{HiveContext, HiveUtils}
+import org.apache.spark.sql.hive.HiveUtils
 import org.apache.spark.sql.hive.thriftserver.GeohikerReflectionUtils._
 
-private[hive] class GeohikerSparkSQLCLIService(hiveServer: HiveServer2, hiveContext: HiveContext)
+private[hive] class GeohikerSparkSQLCLIService(hiveServer: HiveServer2, sqlContext: SQLContext)
   extends CLIService(hiveServer)
   with GeohikerReflectedCompositeService {
 
   override def init(hiveConf: HiveConf) {
     setSuperField(this, "hiveConf", hiveConf)
 
-    val sparkSqlSessionManager = new GeohikerSparkSQLSessionManager(hiveServer, hiveContext)
+    val sparkSqlSessionManager = new GeohikerSparkSQLSessionManager(hiveServer, sqlContext)
     setSuperField(this, "sessionManager", sparkSqlSessionManager)
     addService(sparkSqlSessionManager)
     var sparkServiceUGI: UserGroupInformation = null
@@ -96,7 +95,7 @@ private[hive] class GeohikerSparkSQLCLIService(hiveServer: HiveServer2, hiveCont
     getInfoType match {
       case GetInfoType.CLI_SERVER_NAME => new GetInfoValue("Spark SQL")
       case GetInfoType.CLI_DBMS_NAME => new GetInfoValue("Spark SQL")
-      case GetInfoType.CLI_DBMS_VER => new GetInfoValue(hiveContext.sparkContext.version)
+      case GetInfoType.CLI_DBMS_VER => new GetInfoValue(sqlContext.sparkContext.version)
       case _ => super.getInfo(sessionHandle, getInfoType)
     }
   }
@@ -112,6 +111,7 @@ private[thriftserver] trait GeohikerReflectedCompositeService { this: AbstractSe
     invoke(classOf[AbstractService], this, "ensureCurrentState", classOf[STATE] -> STATE.NOTINITED)
     setAncestorField(this, 3, "hiveConf", hiveConf)
     invoke(classOf[AbstractService], this, "changeState", classOf[STATE] -> STATE.INITED)
+
     if (HiveUtils.isHive23) {
       getAncestorField[Logger](this, 3, "LOG").info(s"Service: $getName is inited.")
     } else {

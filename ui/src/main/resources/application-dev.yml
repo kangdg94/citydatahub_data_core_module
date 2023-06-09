@@ -5,22 +5,32 @@ spring:
   thymeleaf:
     prefix: classpath:/static/
     cache: false
-    
+
   security:
     enabled: false
 
+  # only dev
+  devtools:
+    livereload:
+      enabled: true
+  freemarker:
+    cache: false
+
 server:
   port: 8083
+
   servlet:
     context-path: /
     session.timeout: 60m
 
-## Logging
+  timezone: Asia/Seoul
+
+# Logging
 logging.config: classpath:logback-spring.xml
 logging.base.dir: logs
 
 # Language (en: English, ko: Korean)
-language.code: en
+language.code: ko
 
 # DB Connection
 datasource:
@@ -35,7 +45,6 @@ datasource:
     url: jdbc:postgresql://10.12.0.11:5432/datacore
     username: keti_datacore
     password: keti123
-
 
 # HTTP retrieve
 datacore:
@@ -52,6 +61,7 @@ datacore:
 
 datamanager:
   url: http://10.12.0.5:8080
+
 ingestinterface:
   url: http://10.12.0.12:8080
   
@@ -66,13 +76,14 @@ cityhub:
     userInfoUri: http://10.7.0.22:30000/security/users
     redirectUri: http://203.253.128.181:16608/accesstoken
 
-# Eureka (enabled: set to false to turn off local)
+# Eureka (enabled: set false to turn off dev)
 eureka: 
   instance: 
     prefer-ip-address: true
+
   client: 
     enabled: false
-    register-with-eurka: true
+    register-with-eureka: true
     fetch-registry: true
     service-url: 
       defaultZone: http://133.186.162.81:8888/eureka, http://133.186.162.82:8888/eureka, http://133.186.162.83:8888/eureka

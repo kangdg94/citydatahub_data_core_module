@@ -12,16 +12,16 @@
 
 	<groupId>kr.re.keti.sc.datacoreui</groupId>
 	<artifactId>datacore-usertool</artifactId>
-	<version>2.1.0-SNAPSHOT</version>
+	<version>2.1.1</version>
 	<name>datacore-usertool</name>
-	<description>City Data Hub Datacore User Tool</description>
+	<description>City data hub data core module - user tool application</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-		<jar.name>DatacoreUserTool</jar.name>
+		<maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
+		<jar.name>datacore-usertool</jar.name>
 	</properties>
 
 	<dependencies>
@@ -75,11 +75,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 		</dependency>
@@ -87,7 +82,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-			<version>2.1.4.RELEASE</version>
 		</dependency>
 
 		<dependency>
@@ -133,7 +127,7 @@
 		<dependency>
 			<groupId>org.mybatis</groupId>
 			<artifactId>mybatis</artifactId>
-			<version>3.5.2</version>
+			<version>3.5.6</version>
 		</dependency>
 
 		<dependency>
@@ -158,8 +152,8 @@
 
 	<build>
 		<defaultGoal>install</defaultGoal>
-		<directory>${basedir}/target</directory>
-		<finalName>${artifactId}-${version}</finalName>
+		<directory>${project.basedir}/target</directory>
+		<finalName>${project.artifactId}-${project.version}</finalName>
 
 		<resources>
 			<resource>
@@ -180,10 +174,6 @@
 				</configuration>
 			</plugin>
 			<!-- front build 추가 2020.08.20 -->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
@@ -228,19 +218,18 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>com.spotify</groupId>
+				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>1.0.0</version>
+				<version>0.42.1</version>
 				<configuration>
-					<imageName>keti/sc/${name}</imageName>
-					<dockerDirectory>src/main/docker</dockerDirectory>
-					<resources>
-						<resource>
-							<targetPath>/</targetPath>
-							<directory>${project.build.directory}</directory>
-							<include>${project.build.finalName}.jar</include>
-						</resource>
-					</resources>
+					<images>
+						<image>
+							<name>keti/sc/${project.name}</name>
+							<build>
+								<dockerFileDir>${project.basedir}</dockerFileDir>
+							</build>
+						</image>
+					</images>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -1,5 +1,9 @@
-java 	-Dspring.profiles.active=dev \
-	-Dserver.port=8080 \
-	-jar data-service-broker-1.0.0-SNAPSHOT.jar > /dev/null 2>&1 &
-tail -f logs/datacore.log
+#!/bin/bash
 
+java -Dspring.profiles.active=dev \
+  -Djava.net.preferIPv4Stack=true \
+	-jar target/data-service-broker-2.0.1.jar > /dev/null 2>&1 &
+
+sleep 2
+
+tail -f logs/data-service-broker.log

@@ -9,13 +9,6 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
 
-    maven {
-        url 'https://repo.hortonworks.com/content/repositories/releases/'
-    }
-
-    maven {
-        url "http://conjars.org/repo"
-    }
 }
 
 task makeTar(type: Tar) {
@@ -38,10 +31,13 @@ task makeTar(type: Tar) {
     doLast {
         copy {
             from "$buildDir/dist/thrift-server-1.0.tar.gz"
-            into "docker/thrift/thrift-server/"
-
+            into "docker/thrift/"
         }
     }
+}
+
+ext {
+    geohikerVersion = '1.2.56'
 }
 
 dependencies {
@@ -63,10 +59,10 @@ dependencies {
     compile 'org.apache.sedona:sedona-sql-3.0_2.12:1.0.0-incubating'
     compile 'org.locationtech.jts:jts-core:1.18.0'
 
-    compile files('libs/geohiker-core-1.2.53.jar')
-    compile files('libs/geohiker-index-1.2.53.jar')
-    compile files('libs/geohiker-spark-1.2.53.jar')
-    compile files('libs/geohiker-datastore-1.2.53.jar')
+    compile files("libs/geohiker-core-${geohikerVersion}.jar")
+    compile files("libs/geohiker-index-${geohikerVersion}.jar")
+    compile files("libs/geohiker-spark-${geohikerVersion}.jar")
+    compile files("libs/geohiker-datastore-${geohikerVersion}.jar")
 
     compile (group: 'org.apache.hive', name: 'hive-hbase-handler', version: '2.3.7') {
         exclude group: 'org.apache.hive', module: 'hive-exec'
